@@ -2,8 +2,9 @@
 This repos provides Django RESTful API services.
 
 ### Installation
-Python >= 3.6
-Other dependencies
-```angular2html
+__Python__ >= 3.6
+
+* __Other dependencies__:
+```bash
 pip install -r requirements.txt
 ```
