@@ -10,7 +10,6 @@ class Customer(models.Model):
             user: one-to-one field appended to default User table.
             tel: mandatory telephone number.
             address: mandatory customer address.
-            zipcode: mandatory customer zipcode.
             wechat: optional wechat.
             weibo: optional weibo.
             qq: optional qq.

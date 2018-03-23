@@ -9,28 +9,28 @@ class Register(APIView):
     def post(self, request, format=None):
         data = JSONParser().parse(request)
 
-        user_data = {
-            'email': data['email'],
-            'password': data['password'],
-            'first_name': data['first_name'],
-            'last_name': data['last_name']
-        }
-        user_serializer = UserSerializer(data=user_data)
+        user_serializer = UserSerializer(data=data['auth'])
+        customer_serializer = CustomerSerializer(data=data['customer'])
 
-        if user_serializer.is_valid():
+        # Validate both data but leave the user foreign key as empty.
+        if user_serializer.is_valid() and customer_serializer.is_valid():
             user = user_serializer.save()
-            customer_data = {
-                'user': user.id,
-                'tel': data['tel'],
-                'address': data['address']
-            }
-            customer_serializer = CustomerSerializer(data=customer_data)
 
-            print(customer_serializer)
+            # After saving user to DB, update the customer serializer.
+            data['user'] = user.id
+            customer_serializer = CustomerSerializer(data=data)
             if customer_serializer.is_valid():
-                print(customer_serializer.error_messages)
                 customer_serializer.save()
-                return JsonResponse(user_serializer.data, status=200)
+            return JsonResponse({"msg": "success"}, status=200)
 
-        return JsonResponse(user_serializer.data, status=400)
+        # Gather error from serializer. Because the strange design of Django
+        # serializer, we need call is_valid before accessing its attributes.
+        errors = {}
+        if not user_serializer.is_valid():
+            for field, msg in user_serializer.errors.items():
+                errors[field] = msg
+        if not customer_serializer.is_valid():
+            for field, msg in customer_serializer.errors.items():
+                errors[field] = msg
+        return JsonResponse(errors, status=400)
 
