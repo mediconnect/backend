@@ -36,7 +36,7 @@ class CustomerSerializer(serializers.Serializer):
             if field == 'user':
                 continue
             if data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError(field + ' Cannot Be Blank')
+                raise serializers.ValidationError('Cannot Be Blank')
         return data
 
 
@@ -68,7 +68,7 @@ class UserSerializer(serializers.Serializer):
         """ Validate all fields are filled. """
         for field in self.fields:
             if data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError(field + ' Cannot Be Blank')
+                raise serializers.ValidationError('Cannot Be Blank')
         return data
 
     def validate_email(self, email):
