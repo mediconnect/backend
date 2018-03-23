@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from .serializers import CustomerSerializer, UserSerializer
+from .serializers import CustomerRegistrationSerializer, UserRegistrationSerializer, UserLoginSerializer
 from django.http import JsonResponse
 
 
@@ -10,8 +10,8 @@ class Register(APIView):
         data = JSONParser().parse(request)
         errors = {}
 
-        user_serializer = UserSerializer(data=data['auth'])
-        customer_serializer = CustomerSerializer(data=data['customer'])
+        user_serializer = UserRegistrationSerializer(data=data['auth'])
+        customer_serializer = CustomerRegistrationSerializer(data=data['customer'])
 
         # Validate both data but leave the user foreign key as empty.
         if user_serializer.is_valid() and customer_serializer.is_valid() \
@@ -20,7 +20,7 @@ class Register(APIView):
 
             # After saving user to DB, update the customer serializer.
             data['user'] = user.id
-            customer_serializer = CustomerSerializer(data=data)
+            customer_serializer = CustomerRegistrationSerializer(data=data)
             if customer_serializer.is_valid():
                 customer_serializer.save()
             return JsonResponse({"msg": "success"}, status=200)
@@ -55,3 +55,22 @@ class Register(APIView):
             errors['password_confirmation'] = 'Does not Match Password'
             return False
         return True
+
+
+class Login(APIView):
+    """ View for handling login request. """
+    def post(self, request, format=None):
+        data = JSONParser().parse(request)
+        errors = {}
+
+        user_serializer = UserLoginSerializer(data=data)
+        if user_serializer.is_valid():
+            user_serializer.login()
+            return JsonResponse({"msg": "success"}, status=200)
+
+        # Gather error from serializer. Because the strange design of Django
+        # serializer, we need call is_valid before accessing its attributes.
+        if not user_serializer.is_valid():
+            for field, msg in user_serializer.errors.items():
+                errors[field] = msg[-1]
+        return JsonResponse(errors, status=400)

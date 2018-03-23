@@ -1,13 +1,16 @@
 from rest_framework import serializers
 from . models import Customer
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import authenticate
 import re
 
 
-class CustomerSerializer(serializers.Serializer):
-    class Meta:
-        model = Customer
-        fields = ('user', 'tel', 'address')
+class CustomerRegistrationSerializer(serializers.Serializer):
+    """
+        Use customized fields here, because some fields are not equivalent to the
+        original model.
+    """
 
     # Declare when validate data this field can be optional, but
     # it is required while being saved to DB.
@@ -35,20 +38,20 @@ class CustomerSerializer(serializers.Serializer):
         for field in self.fields:
             if field == 'user':
                 continue
-            if data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError('Cannot Be Blank')
+            if field not in data or data[field] is None or len(data[field]) <= 0:
+                raise serializers.ValidationError({field: ['Cannot Be Blank']})
         return data
 
 
-class UserSerializer(serializers.Serializer):
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+        We use ModelSerializer here because this serializer is complete duplicate
+        as our User model.
+    """
+
     class Meta:
         model = User
         fields = ('email', 'password', 'first_name', 'last_name')
-
-    email = serializers.CharField()
-    password = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
 
     def create(self, validated_data):
         """ Create and return a new Customer instance, given the validated data. """
@@ -60,15 +63,11 @@ class UserSerializer(serializers.Serializer):
             last_name=validated_data['last_name']
         )
 
-    def update(self, instance, validated_data):
-        """ Restrict User object update. """
-        return instance
-
     def validate(self, data):
         """ Validate all fields are filled. """
         for field in self.fields:
-            if data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError('Cannot Be Blank')
+            if field not in data or data[field] is None or len(data[field]) <= 0:
+                raise serializers.ValidationError({field: ['Cannot Be Blank']})
         return data
 
     def validate_email(self, email):
@@ -83,4 +82,32 @@ class UserSerializer(serializers.Serializer):
         """ Validate password is long enough. """
         if len(password) < 8:
             raise serializers.ValidationError('Password Must Be At Least 8 Characters')
-        return password
+        return make_password(password)
+
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    """ Serializer for login user. """
+    class Meta:
+        model = User
+        fields = ('email', 'password')
+
+    def __init__(self, *args, **kwargs):
+        super(UserLoginSerializer, self).__init__(*args, **kwargs)
+
+    def validate(self, data):
+        """ Validate email exists in the DB. """
+        for field in self.fields:
+            if field not in data or data[field] is None or len(data[field]) <= 0:
+                raise serializers.ValidationError({field: ['Cannot Be Blank']})
+
+        email = data['email']
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({'email': ['Email Does Not Exist']})
+        elif not check_password(data['password'], User.objects.get(email=email).password):
+            raise serializers.ValidationError({'password': ['Password Does Not Match']})
+
+        return data
+
+    def login(self):
+        user = authenticate(username=self.data['email'])
+        return user
