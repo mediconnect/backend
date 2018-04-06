@@ -18,7 +18,8 @@ class Patient(models.Model):
 
             note <optional>	String
     """
-    user_id = models.OneToOneField(Customer, on_delete=models.CASCADE)
+    # user_id = models.OneToOneField(Customer, on_delete=models.CASCADE)
+    user_id = models.CharField(max_length=100)
 
     # mandatory fields
     first_name = models.CharField(max_length=50)
