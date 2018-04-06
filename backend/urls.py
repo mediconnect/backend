@@ -4,7 +4,7 @@
 """
 from django.contrib import admin
 from django.urls import path, include
-from patient.views import patient_module
+from patient import patient_module
 
 urlpatterns = [
     path('api/customer/', include('customer.urls')),
