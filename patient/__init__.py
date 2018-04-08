@@ -1,1 +1,1 @@
-from .views import patient_module
+# from .views import patient_module
