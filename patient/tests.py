@@ -36,7 +36,11 @@ class PatientModuleTest(APITestCase):
         patient_get_url = reverse('patient_get', kwargs={'ptid': ptid})
         response = self.client.get(patient_get_url, format='json')
         response_obj = json.loads(response.content)
-        self.assertEqual(sample_instance, response_obj)
+        expecting_obj = dict(sample_instance, id=ptid)
+        for k in response_obj.keys():
+            if k not in expecting_obj:
+                expecting_obj[k] = ""
+        self.assertEqual(expecting_obj, response_obj)
         ## To be continued
 
 
