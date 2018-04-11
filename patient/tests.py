@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
+import json
 from .models import Patient
 
 # Create your tests here.
@@ -24,9 +25,18 @@ class PatientModuleTest(APITestCase):
         }
 
         response = self.client.post(patient_create_url, sample_instance, format='json')
+        # Successful Add
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Patient.objects.count(), 1)
-        self.assertTrue(False)
+
+        ptid = json.loads(response.content)['id']
+        self.assertTrue(ptid > 0)
+
+        # Successful Get
+        patient_get_url = reverse('patient_get', kwargs={'ptid': ptid})
+        response = self.client.get(patient_get_url, format='json')
+        response_obj = json.loads(response.content)
+        self.assertEqual(sample_instance, response_obj)
         ## To be continued
 
 
