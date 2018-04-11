@@ -4,7 +4,7 @@ from atlas.guarantor import use_serializer
 from atlas.locator import AModule
 from rest_framework.views import APIView
 from .models import Patient
-from .serializers import PatientSerializer
+from .serializers import PatientSerializer, OptionalPatientSerializer
 
 patient_module = AModule()
 
@@ -15,7 +15,7 @@ class Create(APIView):
     @use_serializer(Serializer=PatientSerializer)
     def post(self, serializer, format=None):
         posted = serializer.create(serializer.data)
-        return JsonResponse(posted, status=200)
+        return JsonResponse(PatientSerializer(posted).data, status=200)
 
 
 @patient_module.route(r"(?<ptid>.+?)/info$", name="patient_get")
@@ -23,17 +23,17 @@ class FetchRecord(APIView):
 
     def get(self, request, ptid, format=None):
         instance = Patient.objects.get(id=ptid)
-        return JsonResponse(PatientSerializer(instance), safe=False)
+        return JsonResponse(PatientSerializer(instance).data, status=200)
 
 
 @patient_module.route(r"(?<ptid>.+?)/update$", name="patient_update")
 class Update(APIView):
 
-    @use_serializer(Serializer=PatientSerializer)
+    @use_serializer(Serializer=OptionalPatientSerializer)
     def post(self, serializer, ptid, format=None):
         instance = Patient.objects.get(id=ptid)
         posted = serializer.update(instance, serializer.data)
-        return JsonResponse(posted, status=200)
+        return JsonResponse(PatientSerializer(posted).data, status=200)
 
 
 
