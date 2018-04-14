@@ -22,7 +22,10 @@ class Create(APIView):
 class FetchRecord(APIView):
 
     def get(self, request, ptid, format=None):
-        instance = Patient.objects.get(id=ptid)
+        try:
+            instance = Patient.objects.get(id=ptid)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
         return JsonResponse(PatientSerializer(instance).data, status=200)
 
 
@@ -31,7 +34,10 @@ class Update(APIView):
 
     @use_serializer(Serializer=OptionalPatientSerializer)
     def post(self, serializer, ptid, format=None):
-        instance = Patient.objects.get(id=ptid)
+        try:
+            instance = Patient.objects.get(id=ptid)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
         posted = serializer.update(instance, serializer.data)
         return JsonResponse(PatientSerializer(posted).data, status=200)
 

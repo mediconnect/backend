@@ -13,3 +13,6 @@ def create_optional_field_serializer(Serializer):
             extra_kwargs = new_extra_kwargs
 
     return _optional_field_serializer
+
+def with_optional_field_autofill(src_obj, key_set, autofill=""):
+    return dict(map(lambda k: (k, autofill), key_set), **src_obj)

@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 import json
 from .models import Patient
+from atlas.creator import with_optional_field_autofill
 
 # Create your tests here.
 class PatientModuleTest(APITestCase):
@@ -37,10 +38,24 @@ class PatientModuleTest(APITestCase):
         response = self.client.get(patient_get_url, format='json')
         response_obj = json.loads(response.content)
         expecting_obj = dict(sample_instance, id=ptid)
-        for k in response_obj.keys():
-            if k not in expecting_obj:
-                expecting_obj[k] = ""
-        self.assertEqual(expecting_obj, response_obj)
-        ## To be continued
+        self.assertEqual(with_optional_field_autofill(expecting_obj, response_obj.keys()), response_obj)
+
+        # Successful Update
+        patient_update_url = reverse('patient_update', kwargs={'ptid': ptid})
+        update_instance = {
+            "first_name_pinyin": "tai'si'te",
+            "last_name_pinyin": "xi'ke'er"
+        }
+        response = self.client.post(patient_update_url, data=update_instance, format='json')
+        response_obj = json.loads(response.content)
+        expecting_obj = dict(sample_instance, id=ptid, **update_instance)
+        self.assertEqual(with_optional_field_autofill(expecting_obj, response_obj.keys()), response_obj)
+
+    def test_bad_inputs(self):
+        ptid = 1
+        patient_get_url = reverse('patient_get', kwargs={'ptid': ptid})
+        ## error testing pending
+        self.assertRaises(self.client.get(patient_get_url, format="json"))
+
 
 

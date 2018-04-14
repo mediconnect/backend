@@ -20,7 +20,6 @@ class Patient(models.Model):
     """
     # user_id = models.ForeignKey(Customer, on_delete=models.CASCADE)
     user_id = models.CharField(max_length=100)
-    # patient_id = models.CharField(max_length=100)
 
     # mandatory fields
     first_name = models.CharField(max_length=50)
