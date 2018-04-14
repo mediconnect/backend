@@ -8,6 +8,7 @@ from .serializers import PatientSerializer, OptionalPatientSerializer
 
 patient_module = AModule()
 
+## For security reasons, change api to ~/customer/<customer_id>/patient/...? or ~/patient/<customer>/...
 
 @patient_module.route("create", name="patient_create")
 class Create(APIView):

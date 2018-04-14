@@ -54,8 +54,28 @@ class PatientModuleTest(APITestCase):
     def test_bad_inputs(self):
         ptid = 1
         patient_get_url = reverse('patient_get', kwargs={'ptid': ptid})
-        ## error testing pending
-        self.assertRaises(self.client.get(patient_get_url, format="json"))
+        err_resp = self.client.get(patient_get_url, format="json")
+        self.assertEqual(err_resp.status_code, 400)
+        # self.assertEqual(err_resp.content, {})
 
+        sample_instance = {
+            "user_id": "4f773",
+            "first_name": "Test",
+            "last_name": "Sicker",
+            "first_name_pinyin": "Test",
+            "last_name_pinyin": "Sicker",
+            "gender": "M",
+            "birthdate": "2017-01-01",
+            "relationship": "dude",
+            "passport": "E12345678",
+        }
 
+        patient_create_url = reverse("patient_create")
+        err_resp = self.client.post(patient_create_url, data={'first_name': sample_instance['first_name']}, format='json')
+        self.assertEqual(err_resp.status_code, 400)
+        # self.assertEqual(err_resp.content, "")
 
+        patient_update_url = reverse("patient_update", kwargs={'ptid': ptid})
+        err_resp = self.client.post(patient_update_url, data=sample_instance, format='json')
+        self.assertEqual(err_resp.status_code, 400)
+        # self.assertEqual(err_resp.content, "")
