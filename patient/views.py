@@ -1,4 +1,3 @@
-import copy
 from django.http import JsonResponse
 from atlas.guarantor import use_serializer
 from atlas.locator import AModule

@@ -18,3 +18,5 @@ def use_serializer(Serializer, pass_in='auto', many=False):
 
         return wrapper
     return _decorator
+
+def on_error_create
