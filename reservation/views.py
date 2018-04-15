@@ -40,4 +40,5 @@ class Update(APIView):
 @reservation_module.route(r"(?<resid>.+?)/info", name="reservation_get")
 class GetReservationInfo():
 
-    def get(self, se):
+    def get(self):
+        pass
