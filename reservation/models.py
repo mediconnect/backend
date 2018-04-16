@@ -11,12 +11,15 @@ class Reservation(models.Model):
     patient_id = models.IntegerField()
     hospital_id = models.IntegerField()
     disease_id = models.IntegerField()
+    commit_at = models.DateTimeField(blank=True)
+
     # payment - use one to many join to discover
 
     # reservation create time
     ctime = models.DateTimeField(auto_now_add=True)
 
     # ! The black=True below here does not mean optional.
+    # On the creation of the reservation object, these fields are not fillable
     # reservation time
     slot_id = models.IntegerField()
     # join slot table to get res_start_date

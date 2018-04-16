@@ -6,7 +6,12 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = '__all__'
-        read_only_fields = ("user_id", "patient_id", "hospital_id", "disease_id", "ctime")
+        read_only_fields = (
+            "id", "user_id", "patient_id", "hospital_id", "disease_id",
+            "ctime", "commit_at"
+        )
+
+        _on_commit_finalize_fields = ("slot_id", )
 
 
 CompleteReservationSerializer = create_optional_field_serializer(ReservationSerializer)

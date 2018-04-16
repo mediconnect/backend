@@ -41,5 +41,4 @@ class Update(APIView):
         return JsonResponse(PatientSerializer(posted).data)
 
 
-
 urlpatterns = patient_module.urlpatterns
