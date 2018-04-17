@@ -85,4 +85,3 @@ class ReservationModuleTest(APITestCase):
             fetch_partial_dict(response_obj, set(resv_init_sample.keys()) | set(extra_fields_sample.keys())),
             dict(resv_init_sample, **dict(extra_fields_sample, **overwrite_sample))
         )
-        

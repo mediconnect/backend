@@ -67,6 +67,6 @@ class Commit(APIView):
 
         return HttpResponse(status=204)
 
-# TODO: payment module
+# TODO: payment endpoint
 
 urlpatterns = reservation_module.urlpatterns

@@ -5,7 +5,6 @@ Guarantor decorator
 from rest_framework.parsers import JSONParser
 from django.http import JsonResponse
 
-
 def use_serializer(Serializer, pass_in='auto', many=False):
     def _decorator(func):
         def wrapper(self, request, *args, **kwargs):
