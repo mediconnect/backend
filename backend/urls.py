@@ -9,4 +9,5 @@ from django.urls import path, include
 urlpatterns = [
     path('api/customer/', include('customer.urls')),
     path('api/patient/', include('patient.views')),
+    path('api/reservation/', include('reservation.views')),
 ]
