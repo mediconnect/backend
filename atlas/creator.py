@@ -16,3 +16,6 @@ def create_optional_field_serializer(Serializer):
 
 def with_optional_field_autofill(src_obj, key_set, autofill=""):
     return dict(map(lambda k: (k, autofill), key_set), **src_obj)
+
+def fetch_partial_dict(src_obj, key_set):
+    return dict(filter(lambda kv: kv[0] in key_set, src_obj.items()))

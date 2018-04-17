@@ -12,7 +12,7 @@ reservation_module = AModule()
 @reservation_module.route("create", name="reservation_init")
 class InitialCreate(APIView):
 
-    # @any_exception_throws_400
+    @any_exception_throws_400
     @use_serializer(Serializer=CreateReservationSerializer)
     def put(self, serializer, format=None):
         new_reservation = Reservation.objects.create(**serializer.data)
@@ -35,10 +35,10 @@ class Update(APIView):
         # TODO: Similar restriction should apply to other fields if the translation process starts!
 
         for attr, value in updated_fields.items():
-            reservation[attr].set(value)
+            setattr(reservation, attr, value)
 
         reservation.save()
-        return JsonResponse({'updated_fields': serializer.data.keys()})
+        return JsonResponse({'updated_fields': list(serializer.data.keys())})
 
 
 @reservation_module.route(r"(?<resid>.+?)/info", name="reservation_get")
@@ -58,8 +58,11 @@ class Commit(APIView):
         reservation = Reservation.objects.get(id=resid)
 
         assert reservation.commit_at is None, "Reservation has already been submitted!"
+        assert reservation.slot_id, "Reservation with empty slot info cannot be submitted!"
+        assert reservation.first_hospital and reservation.first_doctor_name and reservation.first_doctor_contact, \
+            "Reservation with empty medical history cannot be submitted!"
 
-        reservation.commit_at.set(datetime.now())
+        reservation.commit_at = datetime.now()
         reservation.save()
 
         return HttpResponse(status=204)

@@ -11,7 +11,7 @@ class Reservation(models.Model):
     patient_id = models.IntegerField()
     hospital_id = models.IntegerField()
     disease_id = models.IntegerField()
-    commit_at = models.DateTimeField(blank=True)
+    commit_at = models.DateTimeField(null=True, blank=True)
 
     # payment - use one to many join to discover
 
