@@ -40,11 +40,9 @@ class Register(APIView):
         """
             Because password_confirmation does not belong to any field.
             We use a protected method here for validating password_confirmation.
-
             Arguments:
                 data: Auth data.
                 errors: Error dictionary.
-
             Return:
                 True, if no error. False, otherwise.
         """
