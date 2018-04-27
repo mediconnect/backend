@@ -40,7 +40,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'customer.apps.CustomerConfig',
     'patient.apps.PatientConfig',
-    'reservation.apps.ReservationConfig'
+    'reservation.apps.ReservationConfig',
+    'supervisor.apps.SupervisorConfig',
+    'translator.apps.TranslatorConfig',
+    'questionnaire.apps.QuestionnaireConfig'
+
 ]
 
 MIDDLEWARE = [
