@@ -18,6 +18,7 @@ class InitialCreate(APIView):
         new_reservation = Reservation.objects.create(**serializer.data)
         return JsonResponse({'rid': new_reservation.id})
 
+
 @reservation_module.route(r"(?<resid>.+?)/update", name="reservation_update")
 class Update(APIView):
 
@@ -49,6 +50,7 @@ class GetReservationInfo(APIView):
         reservation = Reservation.objects.get(id=resid)
 
         return JsonResponse(ReservationSerializer(reservation).data)
+
 
 @reservation_module.route(r"(?<resid>.+?)/commit", name="reservation_commit")
 class Commit(APIView):

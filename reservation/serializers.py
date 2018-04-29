@@ -2,12 +2,13 @@ from rest_framework import serializers
 from .models import Reservation
 from atlas.creator import create_optional_field_serializer
 
+
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = '__all__'
         read_only_fields = (
-            "id", "user_id", "patient_id", "hospital_id", "disease_id",
+            "res_id", "user_id", "patient_id", "hospital_id", "disease_id",
             "ctime", "commit_at"
         )
 
