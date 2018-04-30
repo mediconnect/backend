@@ -15,6 +15,7 @@ class InitialCreate(APIView):
     @any_exception_throws_400
     @use_serializer(Serializer=CreateReservationSerializer)
     def put(self, serializer, format=None):
+        print(**serializer.data)
         new_reservation = Reservation.objects.create(**serializer.data)
         return JsonResponse({'rid': new_reservation.id})
 

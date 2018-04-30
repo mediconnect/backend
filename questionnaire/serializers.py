@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import Questionnaire
 from atlas.creator import create_optional_field_serializer
 
-
 class QuestionnaireSerializer(serializers.ModelSerializer):
     class Meta:
         model = Questionnaire
@@ -17,20 +16,25 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
 CompleteQuestionnaireSerializer = create_optional_field_serializer(QuestionnaireSerializer)
 
 
-class CreateQuestionnaireSerializer(serializers.ModelSerializer):
+class CreateQuestionnaireSerializer(serializers.Serializer):
     """
     Create Questionnaire
     """
+    hospital_id = serializers.IntegerField()
+    disease_id = serializers.IntegerField()
 
-    class Meta:
-        model = Questionnaire
-        fields = ('hospital_id','disease_id','category')
+
+class CreateQuestionnaireLinkSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    link = serializers.CharField()
+    qid = serializers.IntegerField()
+    resid = serializers.IntegerField()
 
 
 class RenderQuestionnaireSerializer(serializers.Serializer):
     questions_dict = serializers.DictField()
-    reservation_id = serializers.IntegerField()
+    resid = serializers.IntegerField()
 
 class AnswerQuestionnaireSerializer(serializers.Serializer):
     answer_dict = serializers.DictField()
-    reservation_id = serializers.IntegerField()
+    resid = serializers.IntegerField()

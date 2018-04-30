@@ -12,7 +12,7 @@ class Hospital(models.Model):
     specialty = models.TextField(default='specialty')
     feedback_time = models.IntegerField(default=1)
     average_score = models.FloatField(null=True)
-    review_number = models.IntegerField(blank=True)
+    review_number = models.IntegerField(blank=True,default=0)
 
     class Meta:
         db_table = 'db_hospital'

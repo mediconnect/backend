@@ -16,7 +16,7 @@ from .serializers import CreateUserSerializer,SupervisorLoginSerializer,\
 from .models import Supervisor
 from translator.models import Translator
 from customer.models import Customer
-from .permissions import SupervisorPermission
+from atlas.permissions import SupervisorPermission
 
 
 class CreateUser(APIView):

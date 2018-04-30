@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'reservation.apps.ReservationConfig',
     'supervisor.apps.SupervisorConfig',
     'translator.apps.TranslatorConfig',
-    'questionnaire.apps.QuestionnaireConfig'
+    'questionnaire.apps.QuestionnaireConfig',
+    'hospital.apps.HospitalConfig',
+    'disease.apps.DiseaseConfig',
 
 ]
 

@@ -32,6 +32,7 @@ def on_exception_response(exception_or_list, status=400):
             try:
                 return func(*args, **kwargs)
             except all_exceptions as e:
+                print(str(e))
                 return JsonResponse({
                     'error': type(e).__name__,
                     'detail': str(e)
