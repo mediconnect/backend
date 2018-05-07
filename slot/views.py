@@ -7,7 +7,7 @@ from .serializers import SlotSerializer, TimeSlotAggInfoSerializer, OneTimeSlotU
 from .serializers import DateNumTupleSerializer as Update
 from .models import TimeSlot, SlotBind
 from .utils import date_to_weeknum, weeknum_to_date
-from datetime import datetime
+from datetime import datetime, timedelta
 
 slot_module = AModule()
 
@@ -70,12 +70,14 @@ class CreateOrUpdateList(APIView):
         })
 
 
-@slot_module.route("availability", name="slot_get_availability"):
+@slot_module.route("availability", name="slot_get_availability")
 class GetSlotAvailability(APIView):
 
     @any_exception_throws_400
     def get(self, request, format=None):
         args = request.query_params
+        query_set = {}
+
         # on supervisor privilege can see more ("vision")
         # default 4 weeks from today
         if 'when' in args:
@@ -83,8 +85,29 @@ class GetSlotAvailability(APIView):
         else:
             now = datetime.now().date()
 
-        timeslots = TimeSlot.objects.filter()
+        now_yr, now_week, now_day = now.isocalendar()
 
-        pass
+        if 'hospital' in args:
+            query_set['hospital_id'] = args['hospital']
 
+        if 'disease' in args:
+            query_set['disease_id'] = args['disease']
 
+        assert len(query_set.keys()), "Either hospital or disease need to be specified!"
+
+        timeslots = TimeSlot.objects.filter(**query_set)
+
+        slots_to_show = filter(
+            lambda obj: -2 <= (datetime.strptime("{0.yr},{0.wk},1".format(obj), "%Y,%W,%w") - now).days <= 28,
+            timeslots
+        )
+
+        return JsonResponse([
+            {
+                'hospital': slot.hospital_id,
+                'disease': slot.disease_id,
+                'week_start': datetime.strptime("{0.yr},{0.wk},1".format(slot), "%Y,%W,%w"),
+                'availability': slot.availability - SlotBind.objects.filter(timeslot_id=slot.timeslot_id).count()
+            }
+            for slot in slots_to_show
+        ])
