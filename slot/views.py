@@ -73,7 +73,7 @@ class CreateOrUpdateList(APIView):
 @slot_module.route("availability", name="slot_get_availability")
 class GetSlotAvailability(APIView):
 
-    # @any_exception_throws_400
+    @any_exception_throws_400
     def get(self, request, format=None):
         args = request.query_params
         query_set = {}
