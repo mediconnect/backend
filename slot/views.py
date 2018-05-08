@@ -8,6 +8,7 @@ from .serializers import DateNumTupleSerializer as Update
 from .models import TimeSlot, SlotBind
 from .utils import date_to_weeknum, weeknum_to_date
 from datetime import datetime, timedelta
+import uuid
 
 slot_module = AModule()
 
@@ -17,13 +18,12 @@ slot_module = AModule()
 class CreateOrUpdateList(APIView):
 
     @any_exception_throws_400
-    @use_serializer(OneTimeSlotUpdateSerializer, many=True)
-    def post(self, serializer, format=None):
+    @use_serializer(OneTimeSlotUpdateSerializer, many=True, pass_in='data')
+    def post(self, update_info, format=None):
         created = []
         updated = []
         errored = []
 
-        update_info = serializer.data
         for hospital_info in update_info:
             hospital_id = hospital_info['hospital_id']
             disease_slots = hospital_info['diseases']
@@ -51,7 +51,7 @@ class CreateOrUpdateList(APIView):
                             disease_id=disease_id,
                             slot_year=year,
                             slot_weeknum=weeknum,
-                            availablity=quantity
+                            availability=quantity
                         ))
                     except Exception as e:
                         errored.append({
@@ -64,7 +64,7 @@ class CreateOrUpdateList(APIView):
             TimeSlot.objects.bulk_create(created)
 
         return JsonResponse({
-            'created': map(lambda o: o.timeslot_id, created),
+            'created': list(map(lambda o: o.timeslot_id, created)),
             'updated': updated,
             'error': errored
         })
@@ -73,7 +73,7 @@ class CreateOrUpdateList(APIView):
 @slot_module.route("availability", name="slot_get_availability")
 class GetSlotAvailability(APIView):
 
-    @any_exception_throws_400
+    # @any_exception_throws_400
     def get(self, request, format=None):
         args = request.query_params
         query_set = {}
@@ -88,7 +88,7 @@ class GetSlotAvailability(APIView):
         now_yr, now_week, now_day = now.isocalendar()
 
         if 'hospital' in args:
-            query_set['hospital_id'] = args['hospital']
+            query_set['hospital_id'] = uuid.UUID(args['hospital'])
 
         if 'disease' in args:
             query_set['disease_id'] = args['disease']
@@ -96,9 +96,8 @@ class GetSlotAvailability(APIView):
         assert len(query_set.keys()), "Either hospital or disease need to be specified!"
 
         timeslots = TimeSlot.objects.filter(**query_set)
-
         slots_to_show = filter(
-            lambda obj: -2 <= (datetime.strptime("{0.yr},{0.wk},1".format(obj), "%Y,%W,%w") - now).days <= 28,
+            lambda obj: -2 <= (weeknum_to_date(obj.slot_year, obj.slot_weeknum) - now).days <= 28,
             timeslots
         )
 
@@ -106,8 +105,11 @@ class GetSlotAvailability(APIView):
             {
                 'hospital': slot.hospital_id,
                 'disease': slot.disease_id,
-                'week_start': datetime.strptime("{0.yr},{0.wk},1".format(slot), "%Y,%W,%w"),
+                'week_start': weeknum_to_date(slot.slot_year, slot.slot_weeknum),
                 'availability': slot.availability - SlotBind.objects.filter(timeslot_id=slot.timeslot_id).count()
             }
             for slot in slots_to_show
-        ])
+        ], safe=False)
+
+
+urlpatterns = slot_module.urlpatterns

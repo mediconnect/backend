@@ -12,8 +12,8 @@ class SlotSerializer(serializers.ModelSerializer):
 
 # TimeSlot Aggregated level information
 class TimeSlotAggInfoSerializer(serializers.Serializer):
-    hospital_id = serializers.UUIDField()
-    disease_id = serializers.IntegerField()
+    hospital = serializers.UUIDField()
+    disease = serializers.IntegerField()
     time_slot = serializers.DateTimeField()
     availability = serializers.IntegerField()
 

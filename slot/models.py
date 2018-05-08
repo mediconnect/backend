@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from ..reservation.models import Reservation
+from reservation.models import Reservation
 
 # Create your models here.
 class TimeSlot(models.Model):
@@ -11,8 +11,8 @@ class TimeSlot(models.Model):
     disease_id = models.IntegerField()
 
     # time
-    slot_year = models.IntegerField(max_length=4)
-    slot_weeknum = models.IntegerField(max_length=2)
+    slot_year = models.IntegerField()
+    slot_weeknum = models.IntegerField()
     availability = models.IntegerField()
 
     # need uuid 5 to ensure reproducibility, hospital id namespace to prevent clash
