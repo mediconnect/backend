@@ -1,14 +1,19 @@
+from datetime import datetime, timedelta
+import uuid
+
 from django.http import JsonResponse, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.views import APIView
+
+from atlas.creator import assert_or_throw
 from atlas.guarantor import use_serializer, any_exception_throws_400
 from atlas.locator import AModule
-from rest_framework.views import APIView
+from errors import InvalidArgumentException
+
 from .serializers import SlotSerializer, TimeSlotAggInfoSerializer, OneTimeSlotUpdateSerializer
 from .serializers import DateNumTupleSerializer as Update
 from .models import TimeSlot, SlotBind
 from .utils import date_to_weeknum, weeknum_to_date
-from datetime import datetime, timedelta
-import uuid
 
 slot_module = AModule()
 
@@ -38,7 +43,17 @@ class CreateOrUpdateList(APIView):
                         exist_timeslot = TimeSlot.objects.get(timeslot_id=timeslot_id)
                         change_type = date_slot['type']
                         if change_type == Update.CHANGE_OPTION:
-                            assert SlotBind.objects.filter(timeslot_id=timeslot_id).count() < quantity, "Already more researvation!"
+                            total_registered = SlotBind.objects.filter(timeslot_id=timeslot_id).count()
+                            assert_or_throw(
+                                total_registered <= quantity,
+                                InvalidArgumentException(
+                                    "Can't shrink availability of `{sid}` ({reg} registered) to {avail}".format(
+                                        sid=timeslot_id,
+                                        reg=total_registered,
+                                        avail=quantity,
+                                    )
+                                )
+                            )
                             setattr(exist_timeslot, 'availability', quantity)
                         elif change_type == Update.ADD_OPTION:
                             setattr(exist_timeslot, 'availability', exist_timeslot.availability + quantity)
@@ -93,7 +108,10 @@ class GetSlotAvailability(APIView):
         if 'disease' in args:
             query_set['disease_id'] = args['disease']
 
-        assert len(query_set.keys()), "Either hospital or disease need to be specified!"
+        assert_or_throw(
+            len(query_set.keys()),
+            InvalidArgumentException("Either hospital or disease need to be specified!")
+        )
 
         timeslots = TimeSlot.objects.filter(**query_set)
         slots_to_show = filter(

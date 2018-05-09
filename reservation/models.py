@@ -7,7 +7,7 @@ from patient.models import Patient
 class Reservation(models.Model):
 
     # id - auto generated uuid
-    res_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    res_id = models.UUIDField(primary_key=True, editable=False)
     # foreign key fields
     user_id = models.UUIDField()
     patient_id = models.IntegerField()

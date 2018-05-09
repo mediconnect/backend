@@ -1,20 +1,38 @@
+from datetime import datetime
+import uuid
+
 from django.http import JsonResponse, HttpResponse
+from rest_framework.views import APIView
+
 from atlas.guarantor import use_serializer, any_exception_throws_400
 from atlas.locator import AModule
-from rest_framework.views import APIView
+
 from .serializers import CompleteReservationSerializer, CreateReservationSerializer, ReservationSerializer
 from .models import Reservation
-from datetime import datetime
+from slot.models import TimeSlot, SlotBind
 
 reservation_module = AModule()
+
+
+def _try_assign_timeslot(res_id, timeslot_id):
+    timeslot = TimeSlot.objects.find(timeslot_id=timeslot_id)
+    assert timeslot, "Unable to find time slot"
+    num_reg = SlotBind.objects.filter(timeslot_id=timeslot_id).count()
+    assert num_reg < timeslot.availability, "Full slot!"
+    bind = SlotBind.objects.create(
+        timeslot_id=timeslot_id,
+        reservation_id=res_id
+    )
+    return bind.slot_id
 
 
 @reservation_module.route("create", name="reservation_init")
 class InitialCreate(APIView):
 
     @any_exception_throws_400
-    @use_serializer(Serializer=CreateReservationSerializer)
-    def put(self, serializer, format=None):
+    @use_serializer(Serializer=CreateReservationSerializer, pass_in='data')
+    def put(self, payload, format=None):
+        timeslot_id = TimeSlot.objects.find(timeslot_id=payload['slot_id'])
         new_reservation = Reservation.objects.create(**serializer.data)
         return JsonResponse({'rid': new_reservation.id})
 
