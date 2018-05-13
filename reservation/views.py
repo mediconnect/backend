@@ -32,8 +32,9 @@ class InitialCreate(APIView):
     @any_exception_throws_400
     @use_serializer(Serializer=CreateReservationSerializer, pass_in='data')
     def put(self, payload, format=None):
-        timeslot_id = TimeSlot.objects.find(timeslot_id=payload['slot_id'])
-        new_reservation = Reservation.objects.create(**serializer.data)
+        res_id = uuid.uuid4()
+        slot_id = _try_assign_timeslot(res_id, payload['timeslot_id'])
+        new_reservation = Reservation.objects.create(res_id=res_id, **payload)
         return JsonResponse({'rid': new_reservation.id})
 
 
@@ -41,11 +42,10 @@ class InitialCreate(APIView):
 class Update(APIView):
 
     @any_exception_throws_400
-    @use_serializer(Serializer=CompleteReservationSerializer)
-    def post(self, serializer, resid, format=None):
+    @use_serializer(Serializer=CompleteReservationSerializer, pass_in='data')
+    def post(self, updated_fields, resid, format=None):
+        resid = uuid.UUID(resid)
         reservation = Reservation.objects.get(id=resid)
-
-        updated_fields = serializer.data
 
         if (reservation.commit_at is not None) and \
                 (set(CompleteReservationSerializer.Meta._on_commit_finalize_fields) & set(updated_fields.keys())):
@@ -53,11 +53,16 @@ class Update(APIView):
 
         # TODO: Similar restriction should apply to other fields if the translation process starts!
 
+        if "timeslot_id" in updated_fields:
+            curr_slot = SlotBind.objects.filter(reservation_id=resid)[0]
+            new_slot_id = _try_assign_timeslot(resid, updated_fields['timeslot_id'])
+            curr_slot.delete()
+
         for attr, value in updated_fields.items():
             setattr(reservation, attr, value)
 
         reservation.save()
-        return JsonResponse({'updated_fields': list(serializer.data.keys())})
+        return JsonResponse({'updated_fields': list(updated_fields.keys())})
 
 
 @reservation_module.route(r"(?<resid>.+?)/info", name="reservation_get")
@@ -78,7 +83,7 @@ class Commit(APIView):
         reservation = Reservation.objects.get(id=resid)
 
         assert reservation.commit_at is None, "Reservation has already been submitted!"
-        assert reservation.slot_id, "Reservation with empty slot info cannot be submitted!"
+        assert reservation.timeslot_id, "Reservation with empty slot info cannot be submitted!"
         assert reservation.first_hospital and reservation.first_doctor_name and reservation.first_doctor_contact, \
             "Reservation with empty medical history cannot be submitted!"
 

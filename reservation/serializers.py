@@ -12,15 +12,15 @@ class ReservationSerializer(serializers.ModelSerializer):
             "ctime", "commit_at"
         )
 
-        _on_commit_finalize_fields = ("slot_id", )
+        _on_commit_finalize_fields = ("timeslot_id", )
 
 
 CompleteReservationSerializer = create_optional_field_serializer(ReservationSerializer)
 
 
 class CreateReservationSerializer(serializers.Serializer):
-    user_id = serializers.IntegerField()
+    user_id = serializers.UUIDField()
     patient_id = serializers.IntegerField()
-    hospital_id = serializers.IntegerField()
+    hospital_id = serializers.UUIDField()
     disease_id = serializers.IntegerField()
-    slot_id = serializers.IntegerField()
+    timeslot_id = serializers.UUIDField()

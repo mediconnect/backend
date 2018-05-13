@@ -20,8 +20,8 @@ class Reservation(models.Model):
     # reservation create time
     ctime = models.DateTimeField(auto_now_add=True)
 
-    # reservation slot id
-    slot_id = models.UUIDField()
+    # reservation time slot id
+    timeslot_id = models.UUIDField()
     # join slot table to get res_start_date
 
     # ! The blank=True below here does not mean optional.
