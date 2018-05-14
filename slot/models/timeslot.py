@@ -1,6 +1,5 @@
 import uuid
 from django.db import models
-from reservation.models import Reservation
 
 # Create your models here.
 class TimeSlot(models.Model):
@@ -24,10 +23,3 @@ class TimeSlot(models.Model):
                 d=disease_id, yr=slot_year, wk=slot_weeknum
             )
         )
-
-
-class SlotBind(models.Model):
-
-    slot_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    timeslot_id = models.ForeignKey(TimeSlot, on_delete=models.PROTECT)
-    reservation_id = models.ForeignKey(Reservation, on_delete=models.CASCADE)

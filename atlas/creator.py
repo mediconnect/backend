@@ -30,7 +30,15 @@ def with_optional_field_autofill(src_obj, key_set, autofill=""):
 
 
 def fetch_partial_dict(src_obj, key_set):
-    return dict(filter(lambda kv: kv[0] in key_set, src_obj.items()))
+    return dict(
+            filter(lambda kv: kv[0] in key_set,
+                   src_obj.items()
+                   )
+            )
+
+
+def process_dict_value(obj, val_parser):
+    return {k: val_parser(v) for k, v in obj.items()}
 
 
 def assert_or_throw(cond, what):

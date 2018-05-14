@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from customer.models import Customer
 from patient.models import Patient
+from slot.models.timeslot import TimeSlot
 
 
 class Reservation(models.Model):
@@ -21,7 +22,7 @@ class Reservation(models.Model):
     ctime = models.DateTimeField(auto_now_add=True)
 
     # reservation time slot id
-    timeslot_id = models.UUIDField()
+    timeslot = models.ForeignKey(TimeSlot, on_delete=models.PROTECT)
     # join slot table to get res_start_date
 
     # ! The blank=True below here does not mean optional.

@@ -2,21 +2,50 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 import json
+import uuid
+from datetime import datetime, timedelta
 from .models import Reservation
-from atlas.creator import fetch_partial_dict
+from atlas.creator import fetch_partial_dict, process_dict_value
 
 # Create your tests here.
 class ReservationModuleTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
+        self.hospital_id = uuid.uuid4()
+
+        payload = [
+            {
+                "hospital_id": self.hospital_id,
+                "diseases": [
+                    {
+                        "disease_id": 1,
+                        "date_slots": [
+                            {
+                                "date": datetime(2018, 1, 1) + timedelta(days=dt*7),
+                                "quantity": 1,
+                                "type": "add"
+                            }
+                            for dt in range(2)
+                        ]
+                    }
+                ]
+            }
+        ]
+
+        create_slot_url = reverse("slot_publish_batch")
+        response = self.client.post(create_slot_url, payload, format='json')
+        resp_info = json.loads(response.content)
+
+        self.timeslot_ids = list(map(uuid.UUID, resp_info['created']))
+        print(self.timeslot_ids)
 
     def test_all_workflows(self):
         resv_init_sample = {
-            'user_id': 1234,
-            'patient_id': 2345,
-            'hospital_id': 3456,
-            'disease_id': 4567,
-            'slot_id': 5678,
+            'user_id': uuid.uuid4(),
+            'patient_id': 1,
+            'hospital_id': self.hospital_id,
+            'disease_id': 1,
+            'timeslot_id': self.timeslot_ids[0],
         }
 
         # Test create
@@ -30,9 +59,13 @@ class ReservationModuleTest(APITestCase):
 
         get_resv_url = reverse("reservation_get", kwargs={'resid': resvid})
         response = self.client.get(get_resv_url)
+        # print(json.loads(response.content))
         self.assertEqual(response.status_code, 200)
         response_obj = json.loads(response.content)
-        self.assertEqual(resv_init_sample, dict(filter(lambda kv: kv[0] in resv_init_sample.keys(), response_obj.items())))
+        self.assertEqual(
+            process_dict_value(resv_init_sample, lambda v: str(v) if),
+            fetch_partial_dict(response_obj, resv_init_sample.keys())
+        )
         self.assertIsNotNone(response_obj['ctime'])
         self.assertIsNone(response_obj['commit_at'])
         self.assertEqual(fetch_partial_dict(response_obj, resv_init_sample.keys()), resv_init_sample)
@@ -69,7 +102,7 @@ class ReservationModuleTest(APITestCase):
 
         overwrite_sample = {
             "first_doctor_name": "Dr. He, Xie",
-            "slot_id": 1111,
+            "timeslot_id": self.timeslot_ids[1],
         }
 
         # test update failure

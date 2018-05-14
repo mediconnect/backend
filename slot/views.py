@@ -12,7 +12,8 @@ from errors import InvalidArgumentException
 
 from .serializers import SlotSerializer, TimeSlotAggInfoSerializer, OneTimeSlotUpdateSerializer
 from .serializers import DateNumTupleSerializer as Update
-from .models import TimeSlot, SlotBind
+from .models.timeslot import TimeSlot
+from .models.slotbind import SlotBind
 from .utils import date_to_weeknum, weeknum_to_date
 
 slot_module = AModule()

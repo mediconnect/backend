@@ -9,21 +9,22 @@ from atlas.locator import AModule
 
 from .serializers import CompleteReservationSerializer, CreateReservationSerializer, ReservationSerializer
 from .models import Reservation
-from slot.models import TimeSlot, SlotBind
+from slot.models.timeslot import TimeSlot
+from slot.models.slotbind import SlotBind
 
 reservation_module = AModule()
 
 
-def _try_assign_timeslot(res_id, timeslot_id):
-    timeslot = TimeSlot.objects.find(timeslot_id=timeslot_id)
+def _try_assign_timeslot(timeslot_id, reservation=None):
+    timeslot = TimeSlot.objects.get(timeslot_id=timeslot_id)
     assert timeslot, "Unable to find time slot"
     num_reg = SlotBind.objects.filter(timeslot_id=timeslot_id).count()
     assert num_reg < timeslot.availability, "Full slot!"
     bind = SlotBind.objects.create(
-        timeslot_id=timeslot_id,
-        reservation_id=res_id
+        timeslot_id=timeslot.timeslot_id,
+        reservation=reservation
     )
-    return bind.slot_id
+    return bind
 
 
 @reservation_module.route("create", name="reservation_init")
@@ -33,9 +34,11 @@ class InitialCreate(APIView):
     @use_serializer(Serializer=CreateReservationSerializer, pass_in='data')
     def put(self, payload, format=None):
         res_id = uuid.uuid4()
-        slot_id = _try_assign_timeslot(res_id, payload['timeslot_id'])
+        slotbind = _try_assign_timeslot(payload['timeslot_id'])
         new_reservation = Reservation.objects.create(res_id=res_id, **payload)
-        return JsonResponse({'rid': new_reservation.id})
+        slotbind.reservation_id = new_reservation
+        slotbind.save()
+        return JsonResponse({'rid': res_id})
 
 
 @reservation_module.route(r"(?<resid>.+?)/update", name="reservation_update")
@@ -55,7 +58,7 @@ class Update(APIView):
 
         if "timeslot_id" in updated_fields:
             curr_slot = SlotBind.objects.filter(reservation_id=resid)[0]
-            new_slot_id = _try_assign_timeslot(resid, updated_fields['timeslot_id'])
+            new_slot = _try_assign_timeslot(updated_fields['timeslot_id'], reservation=reservation)
             curr_slot.delete()
 
         for attr, value in updated_fields.items():
@@ -70,7 +73,7 @@ class GetReservationInfo(APIView):
 
     @any_exception_throws_400
     def get(self, request, resid, format=None):
-        reservation = Reservation.objects.get(id=resid)
+        reservation = Reservation.objects.get(res_id=uuid.UUID(resid))
 
         return JsonResponse(ReservationSerializer(reservation).data)
 

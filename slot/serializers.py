@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import TimeSlot, SlotBind
+from .models.timeslot import TimeSlot
+from .models.slotbind import SlotBind
 # from atlas.creator import create_optional_field_serializer
 
 
