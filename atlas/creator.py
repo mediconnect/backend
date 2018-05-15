@@ -37,10 +37,6 @@ def fetch_partial_dict(src_obj, key_set):
             )
 
 
-def process_dict_value(obj, val_parser):
-    return {k: val_parser(v) for k, v in obj.items()}
-
-
 def assert_or_throw(cond, what):
     if not cond:
         raise what

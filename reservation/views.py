@@ -48,7 +48,7 @@ class Update(APIView):
     @use_serializer(Serializer=CompleteReservationSerializer, pass_in='data')
     def post(self, updated_fields, resid, format=None):
         resid = uuid.UUID(resid)
-        reservation = Reservation.objects.get(id=resid)
+        reservation = Reservation.objects.get(res_id=resid)
 
         if (reservation.commit_at is not None) and \
                 (set(CompleteReservationSerializer.Meta._on_commit_finalize_fields) & set(updated_fields.keys())):
@@ -83,7 +83,8 @@ class Commit(APIView):
 
     @any_exception_throws_400
     def post(self, request, resid, format=None):
-        reservation = Reservation.objects.get(id=resid)
+        resid = uuid.UUID(resid)
+        reservation = Reservation.objects.get(res_id=resid)
 
         assert reservation.commit_at is None, "Reservation has already been submitted!"
         assert reservation.timeslot_id, "Reservation with empty slot info cannot be submitted!"

@@ -1,14 +1,14 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APIClient
 import json
 import uuid
 from datetime import datetime, timedelta
 from .models import Reservation
-from atlas.creator import fetch_partial_dict, process_dict_value
+from atlas.comparer import APITestCaseExtend
 
 # Create your tests here.
-class ReservationModuleTest(APITestCase):
+class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
         self.client = APIClient()
         self.hospital_id = uuid.uuid4()
@@ -59,16 +59,12 @@ class ReservationModuleTest(APITestCase):
 
         get_resv_url = reverse("reservation_get", kwargs={'resid': resvid})
         response = self.client.get(get_resv_url)
-        # print(json.loads(response.content))
         self.assertEqual(response.status_code, 200)
         response_obj = json.loads(response.content)
-        self.assertEqual(
-            process_dict_value(resv_init_sample, lambda v: str(v) if),
-            fetch_partial_dict(response_obj, resv_init_sample.keys())
-        )
+        self.assertDictIntersectEqual(resv_init_sample, response_obj, value_parser=str)
         self.assertIsNotNone(response_obj['ctime'])
         self.assertIsNone(response_obj['commit_at'])
-        self.assertEqual(fetch_partial_dict(response_obj, resv_init_sample.keys()), resv_init_sample)
+        self.assertDictIntersectEqual(response_obj, resv_init_sample)
 
         commit_resv_url = reverse("reservation_commit", kwargs={'resid': resvid})
         update_resv_url = reverse("reservation_update", kwargs={'resid': resvid})
@@ -88,10 +84,7 @@ class ReservationModuleTest(APITestCase):
 
         response_obj = json.loads(self.client.get(get_resv_url).content)
 
-        self.assertEqual(
-            fetch_partial_dict(response_obj, set(resv_init_sample.keys()) | set(extra_fields_sample.keys())),
-            dict(resv_init_sample, **extra_fields_sample)
-        )
+        self.assertDictIntersectEqual(response_obj, dict(resv_init_sample, **extra_fields_sample))
 
         # test empty commit success
         response = self.client.post(commit_resv_url)
@@ -102,19 +95,19 @@ class ReservationModuleTest(APITestCase):
 
         overwrite_sample = {
             "first_doctor_name": "Dr. He, Xie",
-            "timeslot_id": self.timeslot_ids[1],
+            "timeslot": self.timeslot_ids[1],
         }
 
         # test update failure
         self.assertEqual(self.client.post(update_resv_url, data=overwrite_sample).status_code, 400)
 
         # test update success
-        del overwrite_sample['slot_id']
+        del overwrite_sample['timeslot']
         response = self.client.post(update_resv_url, data=overwrite_sample)
         self.assertEqual(response.status_code, 200)
 
         response_obj = json.loads(self.client.get(get_resv_url).content)
-        self.assertEqual(
-            fetch_partial_dict(response_obj, set(resv_init_sample.keys()) | set(extra_fields_sample.keys())),
-            dict(resv_init_sample, **dict(extra_fields_sample, **overwrite_sample))
-        )
+        self.assertDictIntersectEqual(response_obj, dict(extra_fields_sample, **overwrite_sample))
+
+    def test_insufficient_slot(self):
+        pass

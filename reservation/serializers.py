@@ -12,7 +12,7 @@ class ReservationSerializer(serializers.ModelSerializer):
             "ctime", "commit_at"
         )
 
-        _on_commit_finalize_fields = ("timeslot_id", )
+        _on_commit_finalize_fields = ("timeslot", )
 
 
 CompleteReservationSerializer = create_optional_field_serializer(ReservationSerializer)
