@@ -11,6 +11,7 @@ from atlas.comparer import APITestCaseExtend
 class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
         self.client = APIClient()
+        self.maxDiff = None
         self.hospital_id = uuid.uuid4()
 
         payload = [
@@ -37,7 +38,7 @@ class ReservationModuleTest(APITestCaseExtend):
         resp_info = json.loads(response.content)
 
         self.timeslot_ids = list(map(uuid.UUID, resp_info['created']))
-        print(self.timeslot_ids)
+
 
     def test_all_workflows(self):
         resv_init_sample = {
@@ -109,5 +110,68 @@ class ReservationModuleTest(APITestCaseExtend):
         response_obj = json.loads(self.client.get(get_resv_url).content)
         self.assertDictIntersectEqual(response_obj, dict(extra_fields_sample, **overwrite_sample))
 
+
     def test_insufficient_slot(self):
-        pass
+        place_taker_1 = {
+            'user_id': uuid.uuid4(),
+            'patient_id': 1,
+            'hospital_id': self.hospital_id,
+            'disease_id': 1,
+            'timeslot_id': self.timeslot_ids[0],
+        }
+
+        place_taker_2 = {
+            'user_id': uuid.uuid4(),
+            'patient_id': 1,
+            'hospital_id': self.hospital_id,
+            'disease_id': 1,
+            'timeslot_id': self.timeslot_ids[1],
+        }
+
+        # setup
+        create_resv_url = reverse("reservation_init")
+        response = self.client.put(create_resv_url, place_taker_1, format='json')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.put(create_resv_url, place_taker_2, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Reservation.objects.count(), 2)
+        rid2 = json.loads(response.content)['rid']
+
+        # add one more
+        response = self.client.put(create_resv_url, place_taker_1, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content)['error'], "InsufficientSpaceException")
+
+        update_resv_url = reverse("reservation_update", kwargs={'resid': rid2})
+
+        # update to full time slot should fail and keep current slot
+        response = self.client.post(update_resv_url, data={'timeslot': self.timeslot_ids[0]})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content)['error'], "InsufficientSpaceException")
+        self.assertEqual(Reservation.objects.get(res_id=rid2).timeslot_id, self.timeslot_ids[1])
+
+        self.client.post(
+            reverse("slot_publish_batch"),
+            [
+                {
+                    "hospital_id": self.hospital_id,
+                    "diseases": [
+                        {
+                            "disease_id": 1,
+                            "date_slots": [
+                                {
+                                    "date": datetime(2018, 1, 1),
+                                    "quantity": 1,
+                                    "type": "add"
+                                }
+                                for dt in range(2)
+                            ]
+                        }
+                    ]
+                }
+            ],
+            format='json'
+        )
+        response = self.client.post(update_resv_url, data={'timeslot': self.timeslot_ids[0]})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Reservation.objects.get(res_id=rid2).timeslot_id, self.timeslot_ids[0])

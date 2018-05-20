@@ -4,6 +4,7 @@ import uuid
 from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 
+from atlas.creator import assert_or_throw
 from atlas.guarantor import use_serializer, any_exception_throws_400
 from atlas.locator import AModule
 
@@ -12,6 +13,8 @@ from .models import Reservation
 from slot.models.timeslot import TimeSlot
 from slot.models.slotbind import SlotBind
 
+from errors.reservation import InsufficientSpaceException, ImmutableFieldException
+
 reservation_module = AModule()
 
 
@@ -19,7 +22,7 @@ def _try_assign_timeslot(timeslot_id, reservation=None):
     timeslot = TimeSlot.objects.get(timeslot_id=timeslot_id)
     assert timeslot, "Unable to find time slot"
     num_reg = SlotBind.objects.filter(timeslot_id=timeslot_id).count()
-    assert num_reg < timeslot.availability, "Full slot!"
+    assert_or_throw(num_reg < timeslot.availability, InsufficientSpaceException())
     bind = SlotBind.objects.create(
         timeslot_id=timeslot.timeslot_id,
         reservation=reservation
@@ -52,13 +55,13 @@ class Update(APIView):
 
         if (reservation.commit_at is not None) and \
                 (set(CompleteReservationSerializer.Meta._on_commit_finalize_fields) & set(updated_fields.keys())):
-            raise Exception("Slot cannot be changed after reservation submitted!")
+            raise ImmutableFieldException(field="Slot", when="after reservation submitted")
 
         # TODO: Similar restriction should apply to other fields if the translation process starts!
 
-        if "timeslot_id" in updated_fields:
+        if "timeslot" in updated_fields:
             curr_slot = SlotBind.objects.filter(reservation_id=resid)[0]
-            new_slot = _try_assign_timeslot(updated_fields['timeslot_id'], reservation=reservation)
+            new_slot = _try_assign_timeslot(updated_fields['timeslot'].timeslot_id, reservation=reservation)
             curr_slot.delete()
 
         for attr, value in updated_fields.items():
