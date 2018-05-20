@@ -1,15 +1,18 @@
+import uuid
 from django.db import models
 from customer.models import Customer
 from patient.models import Patient
+from slot.models.timeslot import TimeSlot
 
 
 class Reservation(models.Model):
 
-    # id - auto generated id
+    # id - auto generated uuid
+    res_id = models.UUIDField(primary_key=True, editable=False)
     # foreign key fields
-    user_id = models.IntegerField()
+    user_id = models.UUIDField()
     patient_id = models.IntegerField()
-    hospital_id = models.IntegerField()
+    hospital_id = models.UUIDField()
     disease_id = models.IntegerField()
     commit_at = models.DateTimeField(null=True, blank=True)
 
@@ -18,11 +21,12 @@ class Reservation(models.Model):
     # reservation create time
     ctime = models.DateTimeField(auto_now_add=True)
 
-    # ! The black=True below here does not mean optional.
-    # On the creation of the reservation object, these fields are not fillable
-    # reservation time
-    slot_id = models.IntegerField()
+    # reservation time slot id
+    timeslot = models.ForeignKey(TimeSlot, on_delete=models.PROTECT)
     # join slot table to get res_start_date
+
+    # ! The blank=True below here does not mean optional.
+    # On the creation of the reservation object, these fields are not fillable
 
     # first diagnosis info
     first_hospital = models.CharField(max_length=300, blank=True)

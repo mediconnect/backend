@@ -1,22 +1,52 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APIClient
 import json
+import uuid
+from datetime import datetime, timedelta
 from .models import Reservation
-from atlas.creator import fetch_partial_dict
+from atlas.comparer import APITestCaseExtend
 
 # Create your tests here.
-class ReservationModuleTest(APITestCase):
+class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
         self.client = APIClient()
+        self.maxDiff = None
+        self.hospital_id = uuid.uuid4()
+
+        payload = [
+            {
+                "hospital_id": self.hospital_id,
+                "diseases": [
+                    {
+                        "disease_id": 1,
+                        "date_slots": [
+                            {
+                                "date": datetime(2018, 1, 1) + timedelta(days=dt*7),
+                                "quantity": 1,
+                                "type": "add"
+                            }
+                            for dt in range(2)
+                        ]
+                    }
+                ]
+            }
+        ]
+
+        create_slot_url = reverse("slot_publish_batch")
+        response = self.client.post(create_slot_url, payload, format='json')
+        resp_info = json.loads(response.content)
+
+        self.timeslot_ids = list(map(uuid.UUID, resp_info['created']))
+
 
     def test_all_workflows(self):
         resv_init_sample = {
-            'user_id': 1234,
-            'patient_id': 2345,
-            'hospital_id': 3456,
-            'disease_id': 4567,
-            'slot_id': 5678,
+            'user_id': uuid.uuid4(),
+            'patient_id': 1,
+            'hospital_id': self.hospital_id,
+            'disease_id': 1,
+            'timeslot_id': self.timeslot_ids[0],
         }
 
         # Test create
@@ -32,10 +62,10 @@ class ReservationModuleTest(APITestCase):
         response = self.client.get(get_resv_url)
         self.assertEqual(response.status_code, 200)
         response_obj = json.loads(response.content)
-        self.assertEqual(resv_init_sample, dict(filter(lambda kv: kv[0] in resv_init_sample.keys(), response_obj.items())))
+        self.assertDictIntersectEqual(resv_init_sample, response_obj, value_parser=str)
         self.assertIsNotNone(response_obj['ctime'])
         self.assertIsNone(response_obj['commit_at'])
-        self.assertEqual(fetch_partial_dict(response_obj, resv_init_sample.keys()), resv_init_sample)
+        self.assertDictIntersectEqual(response_obj, resv_init_sample)
 
         commit_resv_url = reverse("reservation_commit", kwargs={'resid': resvid})
         update_resv_url = reverse("reservation_update", kwargs={'resid': resvid})
@@ -55,10 +85,7 @@ class ReservationModuleTest(APITestCase):
 
         response_obj = json.loads(self.client.get(get_resv_url).content)
 
-        self.assertEqual(
-            fetch_partial_dict(response_obj, set(resv_init_sample.keys()) | set(extra_fields_sample.keys())),
-            dict(resv_init_sample, **extra_fields_sample)
-        )
+        self.assertDictIntersectEqual(response_obj, dict(resv_init_sample, **extra_fields_sample))
 
         # test empty commit success
         response = self.client.post(commit_resv_url)
@@ -69,19 +96,82 @@ class ReservationModuleTest(APITestCase):
 
         overwrite_sample = {
             "first_doctor_name": "Dr. He, Xie",
-            "slot_id": 1111,
+            "timeslot": self.timeslot_ids[1],
         }
 
         # test update failure
         self.assertEqual(self.client.post(update_resv_url, data=overwrite_sample).status_code, 400)
 
         # test update success
-        del overwrite_sample['slot_id']
+        del overwrite_sample['timeslot']
         response = self.client.post(update_resv_url, data=overwrite_sample)
         self.assertEqual(response.status_code, 200)
 
         response_obj = json.loads(self.client.get(get_resv_url).content)
-        self.assertEqual(
-            fetch_partial_dict(response_obj, set(resv_init_sample.keys()) | set(extra_fields_sample.keys())),
-            dict(resv_init_sample, **dict(extra_fields_sample, **overwrite_sample))
+        self.assertDictIntersectEqual(response_obj, dict(extra_fields_sample, **overwrite_sample))
+
+
+    def test_insufficient_slot(self):
+        place_taker_1 = {
+            'user_id': uuid.uuid4(),
+            'patient_id': 1,
+            'hospital_id': self.hospital_id,
+            'disease_id': 1,
+            'timeslot_id': self.timeslot_ids[0],
+        }
+
+        place_taker_2 = {
+            'user_id': uuid.uuid4(),
+            'patient_id': 1,
+            'hospital_id': self.hospital_id,
+            'disease_id': 1,
+            'timeslot_id': self.timeslot_ids[1],
+        }
+
+        # setup
+        create_resv_url = reverse("reservation_init")
+        response = self.client.put(create_resv_url, place_taker_1, format='json')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.put(create_resv_url, place_taker_2, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Reservation.objects.count(), 2)
+        rid2 = json.loads(response.content)['rid']
+
+        # add one more
+        response = self.client.put(create_resv_url, place_taker_1, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content)['error'], "InsufficientSpaceException")
+
+        update_resv_url = reverse("reservation_update", kwargs={'resid': rid2})
+
+        # update to full time slot should fail and keep current slot
+        response = self.client.post(update_resv_url, data={'timeslot': self.timeslot_ids[0]})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content)['error'], "InsufficientSpaceException")
+        self.assertEqual(Reservation.objects.get(res_id=rid2).timeslot_id, self.timeslot_ids[1])
+
+        self.client.post(
+            reverse("slot_publish_batch"),
+            [
+                {
+                    "hospital_id": self.hospital_id,
+                    "diseases": [
+                        {
+                            "disease_id": 1,
+                            "date_slots": [
+                                {
+                                    "date": datetime(2018, 1, 1),
+                                    "quantity": 1,
+                                    "type": "add"
+                                }
+                                for dt in range(2)
+                            ]
+                        }
+                    ]
+                }
+            ],
+            format='json'
         )
+        response = self.client.post(update_resv_url, data={'timeslot': self.timeslot_ids[0]})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Reservation.objects.get(res_id=rid2).timeslot_id, self.timeslot_ids[0])
