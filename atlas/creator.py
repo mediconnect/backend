@@ -17,7 +17,7 @@ def create_optional_field_serializer(Serializer):
 
 
 def create_general_exception_response_body(e):
-    stack_limit = e.stack_limit if hasattr(e, "stack_limit") else 5
+    stack_limit = e.stack_limit if hasattr(e, "stack_limit") else 1
     return {
         'error': type(e).__name__,
         'detail': str(e),
