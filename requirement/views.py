@@ -50,9 +50,9 @@ class SetRequirement(APIView):
         fulfilled = Requirement.objects.filter(hospital_id=payload['hospital_id'], disease_id=payload['disease_id'])
         if fulfilled.count():
             fulfilled.delete()
-        mentioned_types = FileType.objects.filter(id__in=payload['types'])
-        obsolete = map(lambda o: o.id, mentioned_types.filter(obsolete=True))
-        will_use = map(lambda o: o.id, mentioned_types.filter(obsolete=False))
+        mentioned_types = payload['types']
+        obsolete = map(lambda o: o.id, filter(lambda o: o.obsolete, mentioned_types))
+        will_use = map(lambda o: o.id, filter(lambda o: not o.obsolete, mentioned_types))
         created = Requirement.objects.create(
             hospital_id=payload['hospital_id'],
             disease_id=payload['disease_id'],
@@ -67,7 +67,7 @@ class SetRequirement(APIView):
 
 
 @requirement_module.route("requirement/(?<hospital>.+?)/(?<disease>.+?)", name="requirement_get")
-class SetRequirement(APIView):
+class GetRequirement(APIView):
 
     @any_exception_throws_400
     def get(self, request, hospital, disease, format=None):
@@ -75,7 +75,12 @@ class SetRequirement(APIView):
         assert l.count() == 1
         obj = l[0]
 
-        return JsonResponse(RequirementSerializer.from_object(obj).data)
+        data = RequirementSerializer.from_object(obj).validated_data
+
+        return JsonResponse(dict(
+            data,
+            types=list(map(lambda o: o.id, filter(lambda o: not o.obsolete, data['types']))))
+        )
 
 
 urlpatterns = requirement_module.urlpatterns

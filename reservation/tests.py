@@ -62,10 +62,10 @@ class ReservationModuleTest(APITestCaseExtend):
         response = self.client.get(get_resv_url)
         self.assertEqual(response.status_code, 200)
         response_obj = json.loads(response.content)
-        self.assertDictIntersectEqual(resv_init_sample, response_obj, value_parser=str)
+        self.assertJSONIntersectEqual(resv_init_sample, response_obj)
         self.assertIsNotNone(response_obj['ctime'])
         self.assertIsNone(response_obj['commit_at'])
-        self.assertDictIntersectEqual(response_obj, resv_init_sample)
+        self.assertJSONIntersectEqual(response_obj, resv_init_sample)
 
         commit_resv_url = reverse("reservation_commit", kwargs={'resid': resvid})
         update_resv_url = reverse("reservation_update", kwargs={'resid': resvid})
@@ -85,7 +85,7 @@ class ReservationModuleTest(APITestCaseExtend):
 
         response_obj = json.loads(self.client.get(get_resv_url).content)
 
-        self.assertDictIntersectEqual(response_obj, dict(resv_init_sample, **extra_fields_sample))
+        self.assertJSONIntersectEqual(response_obj, dict(resv_init_sample, **extra_fields_sample))
 
         # test empty commit success
         response = self.client.post(commit_resv_url)
@@ -108,7 +108,7 @@ class ReservationModuleTest(APITestCaseExtend):
         self.assertEqual(response.status_code, 200)
 
         response_obj = json.loads(self.client.get(get_resv_url).content)
-        self.assertDictIntersectEqual(response_obj, dict(extra_fields_sample, **overwrite_sample))
+        self.assertJSONIntersectEqual(response_obj, dict(extra_fields_sample, **overwrite_sample))
 
 
     def test_insufficient_slot(self):
