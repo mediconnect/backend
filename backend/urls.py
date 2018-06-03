@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/patient/', include('patient.views')),
     path('api/reservation/', include('reservation.views')),
     path('api/slot/', include('slot.views')),
+    path('api/requirement/', include('requirement.views')),
 ]
