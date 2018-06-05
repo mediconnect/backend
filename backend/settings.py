@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'questionnaire.apps.QuestionnaireConfig',
     'hospital.apps.HospitalConfig',
     'disease.apps.DiseaseConfig',
+    'document.apps.DocumentConfig',
 
 ]
 
