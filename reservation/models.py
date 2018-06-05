@@ -1,6 +1,7 @@
 from django.db import models
 from customer.models import Customer
 from patient.models import Patient
+from translator.models import Translator
 
 
 class Reservation(models.Model):
@@ -9,6 +10,8 @@ class Reservation(models.Model):
     # foreign key fields
     user_id = models.IntegerField()
     patient_id = models.IntegerField()
+    translator_c2e_id = models.ForeignKey(Translator)
+    translator_e2c_id = models.ForeignKey(Translator)
     hospital_id = models.IntegerField()
     disease_id = models.IntegerField()
     commit_at = models.DateTimeField(null=True, blank=True)
