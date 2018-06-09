@@ -3,18 +3,6 @@ from customer.models import Customer
 from django.test import Client
 import copy
 
-DATA = {
-    'email': 'exception_test@test.com',
-    'password': '/.,buz123',
-    'password_confirmation': '/.,buz123',
-    'first_name': 'fuck',
-    'last_name': 'me',
-    'tel': '123456789',
-    'address': 'the test is awesome'
-}
-
-FIELDS = ['email', 'password', 'password_confirmation', 'first_name', 'last_name', 'tel', 'address']
-
 
 class NormalRegisterTestCase(TestCase):
     """ Test normal customer registration procedural. """
