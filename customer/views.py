@@ -1,11 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from .serializers import CustomerRegistrationSerializer, UserRegistrationSerializer, UserLoginSerializer
+from .serializers import CustomerRegistrationSerializer, UserRegistrationSerializer, UserLoginSerializer, \
+    CustomerProfileSerializer
 from django.http import JsonResponse
 
 
 class Register(APIView):
     """ View for handling registration request. """
+
     def post(self, request, format=None):
         data = JSONParser().parse(request)
         errors = {}
@@ -59,6 +61,7 @@ class Register(APIView):
 
 class Login(APIView):
     """ View for handling login request. """
+
     def post(self, request, format=None):
         data = JSONParser().parse(request)
         errors = {}
@@ -74,3 +77,38 @@ class Login(APIView):
             for field, msg in user_serializer.errors.items():
                 errors[field] = msg[-1]
         return JsonResponse(errors, status=400)
+
+
+class Profile(APIView):
+    """ View for handling customer profile information. """
+
+    def put(self, request, format=None):
+        data = JSONParser().parse(request)
+
+        customer_profile_serializer = CustomerProfileSerializer(data)
+
+        # Gather error from serializer. Because the strange design of Django
+        # serializer, we need call is_valid before accessing its attributes.
+        errors = dict()
+        if not customer_profile_serializer.is_valid():
+            for field, msg in customer_profile_serializer.errors.items():
+                errors[field] = msg[-1]
+            return JsonResponse(errors, status=400)
+
+        customer_profile_serializer.save()
+        return JsonResponse({"msg": "success"}, status=200)
+
+    def get(self, request, format=None):
+        data = JSONParser().parse(request)
+
+        customer_profile_serializer = CustomerProfileSerializer(data)
+
+        # Gather error from serializer. Because the strange design of Django
+        # serializer, we need call is_valid before accessing its attributes.
+        errors = dict()
+        if not customer_profile_serializer.is_valid():
+            for field, msg in customer_profile_serializer.errors.items():
+                errors[field] = msg[-1]
+            return JsonResponse(errors, status=400)
+
+        return JsonResponse(customer_profile_serializer.get(), status=200)
