@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from customer.models import Customer
 from patient.models import Patient
+from translator.models import Translator
 from slot.models.timeslot import TimeSlot
 
 
@@ -12,6 +13,8 @@ class Reservation(models.Model):
     # foreign key fields
     user_id = models.UUIDField()
     patient_id = models.IntegerField()
+    translator_c2e_id = models.ForeignKey(Translator)
+    translator_e2c_id = models.ForeignKey(Translator)
     hospital_id = models.UUIDField()
     disease_id = models.IntegerField()
     commit_at = models.DateTimeField(null=True, blank=True)

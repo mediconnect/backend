@@ -41,6 +41,12 @@ INSTALLED_APPS = [
     'customer.apps.CustomerConfig',
     'patient.apps.PatientConfig',
     'reservation.apps.ReservationConfig',
+    'supervisor.apps.SupervisorConfig',
+    'translator.apps.TranslatorConfig',
+    'questionnaire.apps.QuestionnaireConfig',
+    'hospital.apps.HospitalConfig',
+    'disease.apps.DiseaseConfig',
+    'document.apps.DocumentConfig',
     'slot.apps.SlotConfig',
     'requirement.apps.RequirementConfig',
 ]
