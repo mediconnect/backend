@@ -1,9 +1,49 @@
 from rest_framework import serializers
-from . models import Customer
+from .models import Customer
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import authenticate
 import re
+
+
+class CustomerProfileSerializer(serializers.Serializer):
+    """
+        Customized customer information serializer.
+    """
+
+    # Declare when validate data this field can be optional, but
+    # it is required while being saved to DB.
+    id = serializers.IntegerField()
+    tel = serializers.CharField(required=False)
+    address = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        """
+            Get already created customer.
+        """
+        self.instance = Customer.objects.get(id=id)
+        self.user = self.instance.user
+
+    def update(self, instance, validated_data):
+        instance.tel = validated_data['tel']
+        instance.address = validated_data['address']
+        instance.save()
+
+    def get(self):
+        ukeys = ['first_name', 'last_name', 'email']
+        data = dict()
+        for field in ukeys:
+            data[field] = self.user[field]
+
+        data['tel'] = self.tel
+        data['address'] = self.address
+        return data
+
+    def validate(self, data):
+        for field in self.fields:
+            if field.required and (field not in data or data[field] is None or len(data[field]) <= 0):
+                raise serializers.ValidationError({field: ['Cannot Be Blank']})
+        return data
 
 
 class CustomerRegistrationSerializer(serializers.Serializer):
@@ -27,11 +67,7 @@ class CustomerRegistrationSerializer(serializers.Serializer):
         )
 
     def update(self, instance, validated_data):
-        """ Update and return an existing Customer instance, given the validated data. """
-        instance.linenos = validated_data.get('tel', instance.linenos)
-        instance.language = validated_data.get('address', instance.language)
-        instance.save()
-        return instance
+        pass
 
     def validate(self, data):
         """ Validate all fields are filled. """
@@ -87,6 +123,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.ModelSerializer):
     """ Serializer for login user. """
+
     class Meta:
         model = User
         fields = ('email', 'password')

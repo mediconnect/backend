@@ -4,6 +4,7 @@ Guarantor decorator
 
 from rest_framework.parsers import JSONParser
 from django.http import JsonResponse
+from .creator import create_general_exception_response_body
 
 def use_serializer(Serializer, pass_in='auto', many=False):
     # A decorator to read in payload to functions
@@ -14,7 +15,7 @@ def use_serializer(Serializer, pass_in='auto', many=False):
 
             payload_serializer.is_valid(raise_exception=True)
             return func(self,
-                        payload_serializer if not (pass_in == 'data') else payload_serializer.data,
+                        payload_serializer if not (pass_in == 'data') else payload_serializer.validated_data,
                         *args, **kwargs)
 
         return wrapper

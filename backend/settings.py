@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'hospital.apps.HospitalConfig',
     'disease.apps.DiseaseConfig',
     'document.apps.DocumentConfig',
-
+    'slot.apps.SlotConfig',
+    'requirement.apps.RequirementConfig',
 ]
 
 MIDDLEWARE = [
