@@ -1,7 +1,8 @@
 
 from atlas.guarantor import use_serializer, any_exception_throws_400
 from atlas.locator import AModule
-from atlas.permissions import SupervisorPermission
+from atlas.permissions import SupPermission, TransPermission, ResPermission
+
 from .serializers import CompleteQuestionnaireSerializer, CreateQuestionnaireSerializer, CreateQuestionnaireLinkSerializer, \
     QuestionnaireSerializer, RenderQuestionnaireSerializer, AnswerQuestionnaireSerializer
 from .models import Questionnaire
@@ -42,7 +43,7 @@ class InitialCreate(APIView):
 class Update(APIView):
 
     @any_exception_throws_400
-    @permission_classes((IsAuthenticated, SupervisorPermission))
+    @permission_classes((IsAuthenticated, SupPermission))
     @use_serializer(Serializer=CompleteQuestionnaireSerializer)
     def post(self, serializer, qid, format=None):
         questionnaire = Questionnaire.objects.get(id=qid)
@@ -57,7 +58,7 @@ class Update(APIView):
 
 
 @questionnaire_module.route(r"(?<qid>.+?)/info", name="questionnaire_get")
-@permission_classes((IsAuthenticated, SupervisorPermission))
+@permission_classes((IsAuthenticated, SupPermission))
 class GetQuestionnaireInfo(APIView):
 
     @any_exception_throws_400
@@ -84,7 +85,7 @@ class Commit(APIView):
 class CreateTmpLink(APIView):
 
     @any_exception_throws_400
-    @permission_classes((IsAuthenticated, SupervisorPermission))
+    @permission_classes((IsAuthenticated, SupPermission))
     @use_serializer(Serializer=CreateQuestionnaireLinkSerializer)
     def post(self,serializer,request,qid,resid):
         # TODO: which HTTP method to use?
