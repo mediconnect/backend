@@ -18,10 +18,10 @@ def res_directory_path(instance, filename):
 
 class Document(models.Model):
     id = models.UUIDField(primary_key= True, default = uuid.uuid4,editable = False)
-    resid = models.ForeignKey(Reservation,on_delete=models.SET_NULL, null=True)
-    owner = models.ForeignKey(User,to_field=id)
+    resid = models.ForeignKey(Reservation,on_delete = models.SET_NULL, null=True)
+    owner = models.ForeignKey(User,on_delete = models.SET_NULL, null = True)
     description = models.CharField(max_length=50, blank=True)
-    upload_at = models.DateTimeField(default=timezone.now,auto_now_add = True)
+    upload_at = models.DateTimeField(auto_now_add = True)
     data = models.FileField(upload_to=res_directory_path)
     obsolete = models.BooleanField(default=False)
     type = models.IntegerField(default = ORIGINAL)

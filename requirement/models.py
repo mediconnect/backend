@@ -1,4 +1,6 @@
 from django.db import models
+from hospital.models import Hospital
+from disease.models import Disease
 
 class FileType(models.Model):
 
@@ -13,6 +15,6 @@ class FileType(models.Model):
 
 class Requirement(models.Model):
 
-    hospital_id = models.UUIDField()
-    disease_id = models.IntegerField()
+    hospital_id = models.ForeignKey(Hospital,null = True, on_delete= models.SET_NULL)
+    disease_id = models.ForeignKey(Disease,null = True, on_delete= models.SET_NULL)
     require_list = models.BinaryField()
