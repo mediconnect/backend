@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from .creator import create_general_exception_response_body
 
 def use_serializer(Serializer, pass_in='auto', many=False):
+    # A decorator to read in payload to functions
     def _decorator(func):
         def wrapper(self, request, *args, **kwargs):
             payload = JSONParser().parse(request)
@@ -32,7 +33,11 @@ def on_exception_response(exception_or_list, status=400):
             try:
                 return func(*args, **kwargs)
             except all_exceptions as e:
-                return JsonResponse(create_general_exception_response_body(e), status=status)
+                print(str(e))
+                return JsonResponse({
+                    'error': type(e).__name__,
+                    'detail': str(e)
+                }, status=status)
         return wrapper
     return _decorator
 

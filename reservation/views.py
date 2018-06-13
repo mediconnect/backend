@@ -43,7 +43,6 @@ class InitialCreate(APIView):
         slotbind.save()
         return JsonResponse({'rid': res_id})
 
-
 @reservation_module.route(r"(?<resid>.+?)/update", name="reservation_update")
 class Update(APIView):
 

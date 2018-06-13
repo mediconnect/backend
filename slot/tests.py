@@ -87,5 +87,3 @@ class SlotnModuleTest(APITestCase):
             list(map(lambda o: o['availability'], sorted(resp_obj, key=lambda o: o['week_start']))),
             [5, 5, 40, 20]
         )
-
-
