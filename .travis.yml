@@ -3,6 +3,15 @@ language: python
 python:
     - 3.6
 
+services:
+    - mysql
+
+before_install:
+    - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
+    - mysql -e "use mysql; update user set authentication_string=PASSWORD('password') where User='root'; update user set plugin='password';FLUSH PRIVILEGES;"
+    - mysql_upgrade
+    - service mysql restart
+
 install:
     - pip install -r requirements.txt
 
