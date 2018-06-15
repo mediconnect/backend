@@ -8,7 +8,7 @@ install:
 before_script:
     - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
     - mysql -e "use mysql; update user set authentication_string=PASSWORD('password') where User='root'; update user set plugin='password';FLUSH PRIVILEGES;"
-    - mysql_upgrade --user=root --password=password
+    - mysql_upgrade --port=3306 --user=root --password=password
     - service mysql restart
 script:
     - python manage.py test
