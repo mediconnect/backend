@@ -8,3 +8,8 @@ install:
 
 script:
     - python manage.py test
+
+notifications:
+    slack: yiconfirmed:Y9HLCvmAzM2B35cZEiyU9bwd
+    on_success: change
+    on_failure: always
