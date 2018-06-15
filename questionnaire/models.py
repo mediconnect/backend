@@ -15,13 +15,13 @@ def questions_path(instance, filename):
     return 'hospital_{0}/disease_{1}/{2}'.format(instance.hospital.get_id(), instance.disease.get_id(), http.urlquote(filename))
 # Create your models here.
 class Questionnaire(models.Model):
-    hospital = models.ForeignKey(Hospital, unique=False, default=None, on_delete= models.CASCADE)
-    disease = models.ForeignKey(Disease, unique=False, default=None, on_delete= models.CASCADE)
+    hospital = models.ForeignKey(Hospital,on_delete= models.SET_NULL, null = True)
+    disease = models.ForeignKey(Disease, on_delete= models.SET_NULL, null = True)
     category = models.CharField(max_length=200, blank=True)
     questions = models.FileField(upload_to=questions_path, null=True)
     questions_path = models.CharField(max_length = 200)
     is_translated = models.BooleanField(default=False)
-    translator = models.ForeignKey(Translator, on_delete=models.SET(1), null=False)
+    translator = models.ForeignKey(Translator, on_delete=models.SET_NULL, null=True)
     origin_pdf = models.FileField(upload_to=questions_path,null=True)
     origin_pdf_path = models.CharField(max_length= 200)
 

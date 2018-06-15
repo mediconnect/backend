@@ -3,6 +3,8 @@ from django.db import models
 from customer.models import Customer
 from patient.models import Patient
 from translator.models import Translator
+from hospital.models import Hospital
+from disease.models import Disease
 from slot.models.timeslot import TimeSlot
 
 
@@ -11,12 +13,11 @@ class Reservation(models.Model):
     # id - auto generated uuid
     res_id = models.UUIDField(primary_key=True, editable=False)
     # foreign key fields
-    user_id = models.UUIDField()
-    patient_id = models.IntegerField()
-    translator_c2e_id = models.ForeignKey(Translator)
-    translator_e2c_id = models.ForeignKey(Translator)
-    hospital_id = models.UUIDField()
-    disease_id = models.IntegerField()
+    user_id = models.ForeignKey(Customer,on_delete=models.SET_NULL, null = True)
+    patient_id = models.ForeignKey(Patient, on_delete=models.SET_NULL, null = True)
+    translator_id = models.ForeignKey(Translator,unique=False,on_delete=models.SET_NULL, null = True)
+    hospital_id = models.ForeignKey(Hospital,on_delete = models.SET_NULL, null = True)
+    disease_id = models.ForeignKey(Disease,on_delete = models.SET_NULL,null = True)
     commit_at = models.DateTimeField(null=True, blank=True)
 
     # payment - use one to many join to discover
@@ -25,7 +26,7 @@ class Reservation(models.Model):
     ctime = models.DateTimeField(auto_now_add=True)
 
     # reservation time slot id
-    timeslot = models.ForeignKey(TimeSlot, on_delete=models.PROTECT)
+    # timeslot = models.ForeignKey(TimeSlot, on_delete=models.PROTECT)
     # join slot table to get res_start_date
 
     # ! The blank=True below here does not mean optional.
