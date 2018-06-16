@@ -14,7 +14,7 @@ addons:
             - mysql-client
 before_script:
     - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
-    - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('password') where User='root'; update user set plugin='password';FLUSH PRIVILEGES;"
+    - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('password') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
     - sudo mysql_upgrade --port=3306 --user=root --password=password
     - sudo service mysql restart
 script:
