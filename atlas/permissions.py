@@ -61,7 +61,7 @@ class StatusPermission(BasePermission):
     should always be used with another user-type permission
     """
     def __init__(self, allowed_status = [], allowed_trans_status = []):
-        
+
         super(StatusPermission,self).__init__()
         self.allowed_status = allowed_status
         self.allowed_trans_status = allowed_trans_status
@@ -72,5 +72,5 @@ class StatusPermission(BasePermission):
         status = res.status
         trans_status = res.trans_status
 
-        if status in self.allowed_status and trans_status in self.allowed_trans_status
+        if status in self.allowed_status and trans_status in self.allowed_trans_status:
             return True
