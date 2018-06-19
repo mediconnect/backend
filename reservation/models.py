@@ -47,7 +47,7 @@ class Reservation(models.Model):
     disease_id = models.ForeignKey(Disease,on_delete = models.SET_NULL,null = True)
     commit_at = models.DateTimeField(null=True, blank=True)
     status = models.IntegerField(default = STARTED)
-    trans_status = models.IntegerField(defatul = C2E_NOT_STARTED)
+    trans_status = models.IntegerField(default = C2E_NOT_STARTED)
     # payment - use one to many join to discover
 
     # reservation create time
