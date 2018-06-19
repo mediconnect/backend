@@ -54,3 +54,23 @@ class IsOwnerOrReadOnly(BasePermission):
 
         # Instance must have an attribute named `owner`.
         return obj.owner == request.user
+
+class StatusPermission(BasePermission):
+    """
+    Permission to allow certain operation on object if is at certain stage of reservation,
+    should always be used with another user-type permission
+    """
+    def __init__(self, allowed_status = [], allowed_trans_status = []):
+        
+        super(StatusPermission,self).__init__()
+        self.allowed_status = allowed_status
+        self.allowed_trans_status = allowed_trans_status
+
+    def has_permission(self,request,view):
+
+        res = Reservation(id = request.resid)
+        status = res.status
+        trans_status = res.trans_status
+
+        if status in self.allowed_status and trans_status in self.allowed_trans_status
+            return True
