@@ -7,7 +7,13 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 from supervisor.models import Supervisor
 from translator.models import Translator
 from reservation.models import Reservation
+from hospital.models import Hospital
+from django.contrib.auth.models import User
+from customer.models import Customer
+from atlas.logger import logger,exception
 
+
+@exception(logger)
 class SupPermission(BasePermission):
     """
         Permission to allow supervisor level operation.
@@ -18,6 +24,7 @@ class SupPermission(BasePermission):
         return Supervisor.objects.filter(user=user).exists()  # check if user is a supervisor
 
 
+@exception(logger)
 class TransPermission(BasePermission):
     """
             Permission to allow translator level operation.
@@ -28,6 +35,7 @@ class TransPermission(BasePermission):
         return Translator.objects.filter(user=user ).exists()  # check if user is a supervisor
 
 
+@exception(logger)
 class ResPermission(BasePermission):
     """
         Permission to allow user related to this res operation
@@ -40,6 +48,7 @@ class ResPermission(BasePermission):
         return user.id in [res.user_id,res.translator_c2e_id,res.translator_e2c_id]
 
 
+@exception(logger)
 class IsOwnerOrReadOnly(BasePermission):
     """
     Object-level permission to only allow owners of an object to edit it.
@@ -55,6 +64,8 @@ class IsOwnerOrReadOnly(BasePermission):
         # Instance must have an attribute named `owner`.
         return obj.owner == request.user
 
+
+@exception(logger)
 class StatusPermission(BasePermission):
     """
     Permission to allow certain operation on object if is at certain stage of reservation,
@@ -68,9 +79,19 @@ class StatusPermission(BasePermission):
 
     def has_permission(self,request,view):
 
-        res = Reservation(id = request.resid)
+        res = Reservation.objects.get(id = request.data['res_id'])
         status = res.status
         trans_status = res.trans_status
 
         if status in self.allowed_status and trans_status in self.allowed_trans_status:
             return True
+
+
+@exception(logger)
+class CanReviewPermission(BasePermission):
+    """
+    Permission to allow customer add reviews to hospital
+    """
+    def has_permission(self,request,view):
+        hospital = Hospital.objects.get(id = request.data['hospital_id'])
+        customer = Customer.objects.get(user = request.user)

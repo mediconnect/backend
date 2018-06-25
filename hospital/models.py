@@ -39,3 +39,17 @@ class HospitalReview(models.Model):
     customer_id = models.ForeignKey(Customer,on_delete=models.SET_NULL,null = True)
     review = models.CharField(null = True)
     score = models.IntegerField(null = True)
+
+    class Meta:
+        db_table = 'db_hospital_review'
+
+class LikeHospital(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, unique=False, default=None, null=True,
+                                 related_name='customer_liked')
+    hospital = models.ForeignKey('Hospital', on_delete=models.SET_NULL, unique=False, default=None, null=True,
+                                 related_name='hospital_liked')
+    disease = models.ForeignKey('Disease', on_delete=models.SET_NULL, unique=False, default=None, null=True,
+                                related_name='disease_liked')
+
+    class Meta:
+        db_table = 'db_like_hospital'

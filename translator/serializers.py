@@ -18,6 +18,15 @@ ROLE_CHOICES = (
 )
 
 
+class TranslatorSerializer(serializers.ModelSerializer):
+    """ For display supervisor information purpose."""
+    role = serializers.CharField(read_only=True,default=2)
+
+    class Meta:
+        model = Translator
+        fields = 'role'
+
+
 class TranslatorLoginSerializer(serializers.ModelSerializer):
     """
         Handle translator Login
