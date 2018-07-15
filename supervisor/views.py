@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+import uuid
+
 # rest framework
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
@@ -9,12 +12,15 @@ from rest_framework.permissions import IsAuthenticated
 
 # django
 from django.http import JsonResponse,Http404
+from django.shortcuts import get_object_or_404
 
 # other
 from .serializers import CreateUserSerializer,SupervisorLoginSerializer,\
     SupervisorSerializer
 from translator.serializers import TranslatorSerializer
 from customer.serializers import CustomerProfileSerializer
+from reservation.serializers import ReservationSerializer
+from reservation.models import Reservation
 from .models import Supervisor
 from translator.models import Translator
 from customer.models import Customer
@@ -64,6 +70,29 @@ class Login(APIView):
                 errors[field] = msg[-1]
         return JsonResponse(errors, status=400)
 
+
+class UpdateReservationStatus(APIView):
+    """ View for handling reservation update"""
+    lookup_field = 'id'
+    serializer_class = ReservationSerializer
+    permission_classes = []
+
+    def get_object(self):
+        queryset = Reservation.objects.all()
+        filter = {}
+        for field in self.lookup_field:
+            filter[field] = self.kwargs[field]
+
+        obj = get_object_or_404(queryset, **filter)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def update_status(self, updated_fields, resid, format=None):
+        reservation = self.get_object()
+        for attr, value in updated_fields.items():
+            setattr(reservation, attr, value)
+        reservation.save()
+        return JsonResponse({'updated_fields': list(updated_fields.keys())})
 
 class SupervisorDetail(generics.RetrieveUpdateDestroyAPIView):
 

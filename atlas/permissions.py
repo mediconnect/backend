@@ -77,11 +77,30 @@ class StatusPermission(BasePermission):
         self.allowed_status = allowed_status
         self.allowed_trans_status = allowed_trans_status
 
-    def has_permission(self,request,view):
-
-        res = Reservation.objects.get(id = request.data['res_id'])
-        status = res.status
-        trans_status = res.trans_status
+    def has_object_permission(self,request,view,obj):
+        allowed_status = []
+        allowed_trans_status = []
+        if obj.status < 1:
+            return StatusPermission()  # no status change allowed
+        elif obj.status < 7:
+            allowed_status = [obj.status - 1, obj.status + 1]
+            if obj.trans_status < 5:
+                if obj.trans_status < 1:
+                    return StatusPermission(allowed_status=allowed_status)
+                else:
+                    allowed_trans_status = [obj.trans_status - 1, obj.trans_status + 1]
+                    return StatusPermission(allowed_status=allowed_status,
+                                            allowed_trans_status=allowed_trans_status)
+            else:
+                if obj.trans_status < 12:
+                    if obj.trans_status < 6:
+                        return StatusPermission(allowed_status=allowed_status)
+                    else:
+                        allowed_trans_status = [obj.trans_status - 1, obj.trans_status + 1]
+                        return StatusPermission(allowed_status=allowed_status,
+                                                allowed_trans_status=allowed_trans_status)
+        status = obj.status
+        trans_status = obj.trans_status
 
         if status in self.allowed_status and trans_status in self.allowed_trans_status:
             return True
