@@ -25,27 +25,11 @@ ROLE_CHOICES = (
 
 class SupervisorSerializer(UserSerializer):
     """ For display supervisor information purpose."""
-    role = serializers.CharField(read_only=True,default='管理员')
+    role = serializers.CharField(read_only=True,default=1)
 
     class Meta:
         model = Supervisor
         fields = 'role'
-
-
-class TranslatorSerializer(UserSerializer):
-    """ For display translator information purpose."""
-
-    class Meta:
-        model = Supervisor
-        fields = 'role'
-
-
-class CustomerSerializer(serializers.ModelSerializer):
-    """ For display translator information purpose."""
-    class Meta:
-        model = Customer
-        fields = ('tel','address','wechat','qq')
-
 
 class SupervisorLoginSerializer(serializers.ModelSerializer):
     """

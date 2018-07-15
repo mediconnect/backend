@@ -2,15 +2,17 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import routers
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from .models import Hospital
-from .serializers import HospitalSerializer
+from .models import Hospital, HospitalReview,LikeHospital
+from .serializers import HospitalSerializer, HospitalReviewSerializer,LikeHospitalSerializer
 
 from atlas.guarantor import use_serializer, any_exception_throws_400
-from atlas.locator import AModule
-from atlas.permissions import SupPermission,TransPermission,ResPermission, IsOwnerOrReadOnly
+from atlas.permissions import SupPermission, CanReviewPermission
+
 
 class HospitalViewSet(ModelViewSet):
+
     queryset = Hospital.objects.all()
     serializer_class = HospitalSerializer
     parser_classes = (MultiPartParser, FormParser,)
@@ -26,6 +28,65 @@ class HospitalViewSet(ModelViewSet):
             permission_classes = [SupPermission, IsAuthenticated]
 
         return [permission() for permission in permission_classes]
+
+
+class HospitalReviewViewSet(ModelViewSet):
+    queryset = HospitalReview.objects.all()
+    serializer_class = HospitalReviewSerializer
+
+    def get_permissions(self):
+        """
+            Permission class based on action type
+        """
+        if self.action == 'comment':
+            permission_classes = [CanReviewPermission]
+            # TODO: This is not correct
+        else:
+            permission_classes = [SupPermission]
+
+        return [permission() for permission in permission_classes]
+
+    def comment(self, payload, request, **kwargs):
+
+        if request.method == 'POST':
+            serializer = self.serializer_class(**payload)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,)
+            else:
+                return Response(serializer.errors,)
+
+        # Return GET by default
+        else:
+            serializer = self.serializer_class(instance=self.queryset, many=True)
+
+            return Response(serializer.data)
+
+
+class LikeHospitalReviewViewSet(ModelViewSet):
+    queryset = LikeHospital.objects.all()
+    serializer_class = LikeHospitalSerializer
+
+    def get_permissions(self):
+        return [IsAuthenticated,]
+
+    def mark(self, payload, request, **kwargs):
+
+        if request.method == 'POST':
+            serializer = self.serializer_class(**payload)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, )
+            else:
+                return Response(serializer.errors, )
+
+        # Return GET by default
+        else:
+            serializer = self.serializer_class(instance=self.queryset, many=True)
+
+            return Response(serializer.data)
 
 
 router = routers.SimpleRouter()

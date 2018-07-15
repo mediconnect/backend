@@ -12,11 +12,13 @@ from django.http import JsonResponse,Http404
 
 # other
 from .serializers import CreateUserSerializer,SupervisorLoginSerializer,\
-    SupervisorSerializer,TranslatorSerializer,CustomerSerializer
+    SupervisorSerializer
+from translator.serializers import TranslatorSerializer
+from customer.serializers import CustomerProfileSerializer
 from .models import Supervisor
 from translator.models import Translator
 from customer.models import Customer
-from atlas.permissions import SupervisorPermission
+from atlas.permissions import SupPermission
 
 
 class CreateUser(APIView):
@@ -66,14 +68,14 @@ class Login(APIView):
 class SupervisorDetail(generics.RetrieveUpdateDestroyAPIView):
 
     """ Retrieve, update or delete a supervisor instance."""
-    permissions_classes = (IsAuthenticated, SupervisorPermission,)
+    permissions_classes = (IsAuthenticated, SupPermission,)
     queryset = Supervisor.objects.all()
     serializer_class = SupervisorSerializer
 
 
 class SupervisorList(generics.ListAPIView):
     """ List all supervisors. """
-    permissions_classes = (IsAuthenticated, SupervisorPermission,)
+    permissions_classes = (IsAuthenticated, SupPermission,)
     queryset = Supervisor.objects.all()
     serializer_class = SupervisorSerializer
 
@@ -81,14 +83,14 @@ class SupervisorList(generics.ListAPIView):
 class TranslatorDetail(generics.RetrieveUpdateDestroyAPIView):
 
     """ Retrieve, update or delete a translator instance."""
-    permissions_classes = (IsAuthenticated, SupervisorPermission,)
+    permissions_classes = (IsAuthenticated, SupPermission,)
     queryset = Translator.objects.all()
     serializer_class = TranslatorSerializer
 
 
 class TranslatorList(generics.ListAPIView):
     """ List all translators. """
-    permissions_classes = (IsAuthenticated, SupervisorPermission,)
+    permissions_classes = (IsAuthenticated, SupPermission,)
     queryset = Translator.objects.all()
     serializer_class = TranslatorSerializer
 
@@ -96,13 +98,13 @@ class TranslatorList(generics.ListAPIView):
 class CustomerDetail(generics.RetrieveUpdateDestroyAPIView):
 
     """ Retrieve, update or delete a customer instance."""
-    permissions_classes = (IsAuthenticated, SupervisorPermission,)
+    permissions_classes = (IsAuthenticated, SupPermission,)
     queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
+    serializer_class = CustomerProfileSerializer
 
 
 class CustomerList(generics.ListAPIView):
     """ List all customers. """
-    permissions_classes = (IsAuthenticated, SupervisorPermission,)
+    permissions_classes = (IsAuthenticated, SupPermission,)
     queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
+    serializer_class = CustomerProfileSerializer
