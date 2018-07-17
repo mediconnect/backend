@@ -1,15 +1,16 @@
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APIClient
 import json
 import uuid
 from datetime import datetime, timedelta
 from .models import Reservation
-from atlas.comparer import APITestCaseExtend, APITestClient
+from atlas.comparer import APITestCaseExtend
 
 # Create your tests here.
 class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
-        self.client = APITestClient()
+        self.client = APIClient()
         self.maxDiff = None
         self.hospital_id = uuid.uuid4()
 

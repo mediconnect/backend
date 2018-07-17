@@ -13,11 +13,11 @@ class Reservation(models.Model):
     # id - auto generated uuid
     res_id = models.UUIDField(primary_key=True, editable=False)
     # foreign key fields
-    user_id = models.ForeignKey(Customer, on_delete=models.PROTECT, null=True)
-    patient_id = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True)
-    translator_id = models.ForeignKey(Translator, unique=False, on_delete=models.PROTECT, null=True)
-    hospital_id = models.ForeignKey(Hospital, on_delete=models.PROTECT, null=True)
-    disease_id = models.ForeignKey(Disease, on_delete=models.CASCADE, null=True)
+    user_id = models.ForeignKey(Customer,on_delete=models.SET_NULL, null = True)
+    patient_id = models.ForeignKey(Patient, on_delete=models.SET_NULL, null = True)
+    translator_id = models.ForeignKey(Translator,unique=False,on_delete=models.SET_NULL, null = True)
+    hospital_id = models.ForeignKey(Hospital,on_delete = models.SET_NULL, null = True)
+    disease_id = models.ForeignKey(Disease,on_delete = models.SET_NULL,null = True)
     commit_at = models.DateTimeField(null=True, blank=True)
 
     # payment - use one to many join to discover
