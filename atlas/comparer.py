@@ -1,5 +1,6 @@
 import json
-from rest_framework.test import APITestCase
+from django.urls import reverse
+from rest_framework.test import APITestCase, APIClient
 
 class APITestCaseExtend(APITestCase):
 
@@ -26,4 +27,23 @@ class APITestCaseExtend(APITestCase):
     def assertJSONIntersectEqual(self, j1, j2, msg=None):
         self.assertDictIntersectEqual(j1, j2, value_parser=str, msg=msg)
 
+    def show(self, stuff, type_=dict):
+        if type_ == dict:
+            self.assertEqual(stuff, {})
+        elif type_ == list:
+            self.assertEqual(stuff, [])
+        else:
+            self.assertEqual(stuff, "")
 
+
+class APITestClient(APIClient):
+
+    def path_call(self, path, method="GET", data=None, **kwargs):
+        return self.__getattribute__(method.lower())(
+            reverse(path, kwargs=kwargs),
+            data=data,
+        )
+
+    def json(self, *args, **kwargs):
+        res = self.path_call(*args, **kwargs)
+        return json.loads(res.content)

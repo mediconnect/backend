@@ -13,11 +13,13 @@ addons:
             - mysql-server
             - mysql-client
 before_script:
-    - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
+    - mysql -e 'CREATE DATABASE IF NOT EXISTS mediconnect;'
     - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('password') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
     - sudo mysql_upgrade --port=3306 --user=root --password=password
     - sudo service mysql restart
 script:
+    - python manage.py makemigrations
+    - python manage.py migrate --fake-initial
     - python manage.py test
 notifications:
     slack: yiconfirmed:Y9HLCvmAzM2B35cZEiyU9bwd
