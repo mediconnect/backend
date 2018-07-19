@@ -103,6 +103,3 @@ ENV/
 *.idea/
 *.DS_Store
 
-*db*
-
-migrations/
