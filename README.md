@@ -1,5 +1,5 @@
 # Mediconnect Backend
-![Alt txt](https://travis-ci.org/mediconnect/backend.svg?branch=develop)
+[![Dev branch](https://travis-ci.org/mediconnect/backend.svg?branch=develop)](https://travis-ci.org/mediconnect/backend)
 
 This repos provides Django RESTful API services.
 
