@@ -7,7 +7,6 @@ from django.utils import http
 from django.conf import settings
 
 from translator.models import Translator
-from supervisor.models import Supervisor
 from hospital.models import Hospital
 from disease.models import Disease
 
@@ -26,7 +25,7 @@ class Questionnaire(models.Model):
     origin_pdf_path = models.CharField(max_length= 200)
 
     class Meta:
-        db_table = 'questionnaire'
+        db_table = 'db_questionnaire'
 
     def save(self, *args, **kwargs):  # override_save method
         """
