@@ -1,5 +1,6 @@
 from django.db import models
 from customer.models import Customer
+from disease.models import Disease
 
 import uuid
 
@@ -17,8 +18,8 @@ class Hospital(models.Model):
     introduction = models.TextField(default='intro')
     specialty = models.TextField(default='specialty')
     feedback_time = models.IntegerField(default=1)
-    average_score = models.DecimalField(max_digits=3,null=True)
-    review_number = models.IntegerField(blank=True,default=0)
+    average_score = models.DecimalField(max_digits=4,decimal_places=3,null=True)
+    review_number = models.IntegerField(default = 0, null = False)
 
     class Meta:
         db_table = 'db_hospital'
@@ -35,21 +36,19 @@ class Hospital(models.Model):
 
 class HospitalReview(models.Model):
 
-    hospital_id = models.ForeignKey(Hospital,on_delete=models.SET_NULL,null = True)
-    customer_id = models.ForeignKey(Customer,on_delete=models.SET_NULL,null = True)
-    review = models.CharField(null = True)
+    hospital_id = models.ForeignKey(Hospital,on_delete=models.SET_NULL,null=True)
+    customer_id = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
+    review = models.CharField(null = True,max_length=200)
     score = models.IntegerField(null = True)
 
     class Meta:
         db_table = 'db_hospital_review'
 
+
 class LikeHospital(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, unique=False, default=None, null=True,
-                                 related_name='customer_liked')
-    hospital = models.ForeignKey('Hospital', on_delete=models.SET_NULL, unique=False, default=None, null=True,
-                                 related_name='hospital_liked')
-    disease = models.ForeignKey('Disease', on_delete=models.SET_NULL, unique=False, default=None, null=True,
-                                related_name='disease_liked')
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, unique=False, default=None, null=True,)
+    hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, unique=False, default=None, null=True,)
+    disease = models.ForeignKey(Disease, on_delete=models.SET_NULL, unique=False, default=None, null=True,)
 
     class Meta:
         db_table = 'db_like_hospital'
