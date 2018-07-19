@@ -12,9 +12,14 @@ class FileType(models.Model):
     extensions = models.TextField(max_length=100, blank=True, null=True)
     limit = models.IntegerField(default=16384)
 
+    class Meta:
+        db_table = 'db_requirement_file_type'
 
 class Requirement(models.Model):
 
     hospital_id = models.ForeignKey(Hospital,null = True, on_delete= models.SET_NULL)
     disease_id = models.ForeignKey(Disease,null = True, on_delete= models.SET_NULL)
     require_list = models.BinaryField()
+
+    class Meta:
+        db_table = 'db_requirement'

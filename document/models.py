@@ -31,4 +31,4 @@ class Document(models.Model):
     limit = models.IntegerField(default=16384)
 
     class Meta:
-        db_table = 'document'
+        db_table = 'db_document'

@@ -40,13 +40,3 @@ class Patient(models.Model):
 
     class Meta:
         db_table = 'db_patient'
-
-    def get_name(self):
-        """
-            Get customer name.
-
-            Return:
-                Customer full name if it exists, otherwise username.
-        """
-        name = self.first_name + ' ' + self.last_name
-        return name

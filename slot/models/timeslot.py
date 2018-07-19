@@ -25,3 +25,7 @@ class TimeSlot(models.Model):
                 d=disease_id, yr=slot_year, wk=slot_weeknum
             )
         )
+
+    class Meta:
+        db_table = 'db_timeslot'
+
