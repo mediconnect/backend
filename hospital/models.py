@@ -18,7 +18,7 @@ class Hospital(models.Model):
     specialty = models.TextField(default='specialty')
     feedback_time = models.IntegerField(default=1)
     average_score = models.DecimalField(max_digits=3,null=True)
-    review_number = models.IntegerField(blank=True,default=0)
+    review_number = models.IntegerField(default = 0, null = False)
 
     class Meta:
         db_table = 'db_hospital'
@@ -47,7 +47,7 @@ class LikeHospital(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, unique=False, default=None, null=True,
                                  related_name='customer_liked')
     hospital = models.ForeignKey('Hospital', on_delete=models.SET_NULL, unique=False, default=None, null=True,
-                                 related_name='hospital_liked')
+                                related_name='hospital_liked')
     disease = models.ForeignKey('Disease', on_delete=models.SET_NULL, unique=False, default=None, null=True,
                                 related_name='disease_liked')
 
