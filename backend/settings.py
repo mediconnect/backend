@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'guardian',
+    'atlas',
     'customer.apps.CustomerConfig',
     'patient.apps.PatientConfig',
     'reservation.apps.ReservationConfig',
