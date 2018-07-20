@@ -6,12 +6,15 @@ import uuid
 from datetime import datetime, timedelta
 from .models import Reservation
 from atlas.comparer import APITestCaseExtend
+from backend.common_test import CommonSetup
 
 # Create your tests here.
 class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
         self.client = APIClient()
         self.maxDiff = None
+        dummy = CommonSetup(hospital=1)
+        self.assertEqual(dummy.hospital, [])
         self.hospital_id = uuid.uuid4()
 
         payload = [
