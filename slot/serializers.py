@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models.timeslot import TimeSlot
 from .models.slotbind import SlotBind
+from hospital.models import Hospital
+from disease.models import Disease
 # from atlas.creator import create_optional_field_serializer
 
 
@@ -13,8 +15,8 @@ class SlotSerializer(serializers.ModelSerializer):
 
 # TimeSlot Aggregated level information
 class TimeSlotAggInfoSerializer(serializers.Serializer):
-    hospital = serializers.UUIDField()
-    disease = serializers.IntegerField()
+    hospital = serializers.PrimaryKeyRelatedField(queryset=Hospital.objects.all())
+    disease = serializers.PrimaryKeyRelatedField(queryset=Disease.objects.all())
     time_slot = serializers.DateTimeField()
     availability = serializers.IntegerField()
 
@@ -30,12 +32,12 @@ class DateNumTupleSerializer(serializers.Serializer):
 
 
 class DiseaseDateSlotSerializer(serializers.Serializer):
-    disease_id = serializers.IntegerField()
+    disease_id = serializers.PrimaryKeyRelatedField(queryset=Disease.objects.all())
     date_slots = DateNumTupleSerializer(many=True)
 
 
 class OneTimeSlotUpdateSerializer(serializers.Serializer):
-    hospital_id = serializers.UUIDField()
+    hospital_id = serializers.PrimaryKeyRelatedField(queryset=Hospital.objects.all())
     diseases = DiseaseDateSlotSerializer(many=True)
 
 

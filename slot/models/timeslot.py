@@ -8,8 +8,8 @@ class TimeSlot(models.Model):
 
     timeslot_id = models.UUIDField(primary_key=True, editable=False)
     # foreign key
-    hospital_id = models.ForeignKey(Hospital,on_delete=models.SET_NULL, null = True)
-    disease_id = models.ForeignKey(Disease, on_delete=models.SET_NULL, null = True)
+    hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, null=True)
+    disease = models.ForeignKey(Disease, on_delete=models.SET_NULL, null=True)
 
     # time
     slot_year = models.IntegerField()
