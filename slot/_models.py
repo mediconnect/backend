@@ -4,7 +4,7 @@ from django.db import models
 from hospital.models import Hospital
 from disease.models import Disease
 
-class Slot(models.Model):
+class Slot:
     hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, unique=False, default=None, null=True,
                                  related_name='hospital_slot')
     disease = models.ForeignKey(Disease, on_delete=models.SET_NULL, unique=False, default=None, null=True,

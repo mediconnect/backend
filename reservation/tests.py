@@ -5,24 +5,24 @@ import json
 import uuid
 from datetime import datetime, timedelta
 from .models import Reservation
-from atlas.comparer import APITestCaseExtend
+from atlas.comparer import APITestCaseExtend, APITestClient
 from backend.common_test import CommonSetup
 
 # Create your tests here.
 class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
-        self.client = APIClient()
+        self.client = APITestClient()
         self.maxDiff = None
-        dummy = CommonSetup(hospital=1)
-        self.assertEqual(dummy.hospital, [])
-        self.hospital_id = uuid.uuid4()
+        dummy = CommonSetup(hospital=1, disease=1)
+        self.hospital_id = dummy.hospital[0]
+        self.disease_id = dummy.disease[0]
 
         payload = [
             {
                 "hospital_id": self.hospital_id,
                 "diseases": [
                     {
-                        "disease_id": 1,
+                        "disease_id": self.disease_id,
                         "date_slots": [
                             {
                                 "date": datetime(2018, 1, 1) + timedelta(days=dt*7),
@@ -36,9 +36,7 @@ class ReservationModuleTest(APITestCaseExtend):
             }
         ]
 
-        create_slot_url = reverse("slot_publish_batch")
-        response = self.client.post(create_slot_url, payload, format='json')
-        resp_info = json.loads(response.content)
+        resp_info = self.client.json(method="POST", call_name="slot_publish_batch", data=payload)
 
         self.timeslot_ids = list(map(uuid.UUID, resp_info['created']))
 
@@ -53,13 +51,11 @@ class ReservationModuleTest(APITestCaseExtend):
         }
 
         # Test create
-        create_resv_url = reverse("reservation_init")
-        response = self.client.put(create_resv_url, resv_init_sample, format='json')
-        self.assertEqual(response.status_code, 200)
+        resobj = self.client.json(method="PUT", call_name="reservation_init", data=resv_init_sample)
         self.assertEqual(Reservation.objects.count(), 1)
 
         # Test get and create result
-        resvid = json.loads(response.content)['rid']
+        resvid = resobj['rid']
 
         get_resv_url = reverse("reservation_get", kwargs={'resid': resvid})
         response = self.client.get(get_resv_url)
