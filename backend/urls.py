@@ -4,6 +4,8 @@
 """
 from django.contrib import admin
 from django.urls import path, include
+import hospital.views as hospital_views
+import disease.views as disease_views
 # from patient import patient_module
 
 urlpatterns = [
@@ -14,4 +16,4 @@ urlpatterns = [
     path('api/questionnaire', include('questionnaire.views')),
     # path('api/supervisor', include('supervisor.views')),
     # path('api/translator',include('translator.views')),
-]
+]+hospital_views.urlpatterns+disease_views.urlpatterns
