@@ -38,12 +38,14 @@ class APITestCaseExtend(APITestCase):
 
 class APITestClient(APIClient):
 
-    def path_call(self, path, method="GET", data=None, **kwargs):
+    def path_call(self, call_name, method="GET", data=None, **kwargs):
         return self.__getattribute__(method.lower())(
-            reverse(path, kwargs=kwargs),
+            reverse(call_name, kwargs=kwargs),
             data=data,
         )
 
     def json(self, *args, **kwargs):
         res = self.path_call(*args, **kwargs)
+        if res.status_code != 200:
+            raise Exception("Error status: {} ({})".format(res.status_code, res.json()))
         return json.loads(res.content)

@@ -31,10 +31,10 @@ class CreateOrUpdateList(APIView):
         errored = []
 
         for hospital_info in update_info:
-            hospital_id = hospital_info['hospital_id']
+            hospital_id = hospital_info['hospital_id'].id
             disease_slots = hospital_info['diseases']
             for disease_slot in disease_slots:
-                disease_id = disease_slot['disease_id']
+                disease_id = disease_slot['disease_id'].id
                 date_slots = disease_slot['date_slots']
                 for date_slot in date_slots:
                     year, weeknum = date_to_weeknum(date_slot['date'])
