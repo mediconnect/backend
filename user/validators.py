@@ -15,3 +15,10 @@ def validate_email_format(email):
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         raise serializers.ValidationError('邮箱格式不符合要求')
 
+def validate_confirmed_password(confirmed_password):
+    """Validate confirmed password"""
+    def innerfn(password):
+        print(password,dir(confirmed_password))
+        if password != confirmed_password.get_value('condirmed_password'):
+            raise serializers.ValidationError('Password doesn\'t match')
+    return innerfn

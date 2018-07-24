@@ -5,8 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Disease
 from .serializers import DiseaseSerializer
 
-from atlas.guarantor import use_serializer, any_exception_throws_400
-from atlas.locator import AModule
 from atlas.permissions import SupPermission, TransPermission, ResPermission, IsOwnerOrReadOnly
 
 

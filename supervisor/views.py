@@ -6,7 +6,8 @@ import uuid
 # rest framework
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from rest_framework import status,generics
+from rest_framework import routers
+from rest_framework.decorators import (api_view, permission_classes, action)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
@@ -15,8 +16,7 @@ from django.http import JsonResponse,Http404
 from django.shortcuts import get_object_or_404
 
 # other
-from .serializers import CreateUserSerializer,SupervisorLoginSerializer,\
-    SupervisorSerializer
+from .serializers import SupervisorLoginSerializer
 from translator.serializers import TranslatorSerializer
 from customer.serializers import CustomerProfileSerializer
 from reservation.serializers import ReservationSerializer
@@ -24,33 +24,48 @@ from reservation.models import Reservation
 from .models import Supervisor
 from translator.models import Translator
 from customer.models import Customer
+from django.contrib.auth.models import User
 from atlas.permissions import SupPermission
+from user.serializers import UserRegistrationSerializer,UserSerializer
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import api_view
 
 
-class CreateUser(APIView):
+class CreateUserViewSet(ModelViewSet):
 
     """ View for handling creating different types of users request. """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
     #permissions_classes = (IsAuthenticated, SupervisorPermission,)
 
-    def post(self, request):
-        data = JSONParser().parse(request)
-        errors = {}
-        responseData = {
-            'error':errors,
-            'user_ID':None,
-        }
+    def create(self, request, *args, **kwargs):
+        # Validating our serializer from the UserRegistrationSerializer
+        serializer = UserRegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        user_serializer = CreateUserSerializer(data=data)
+        # Everything's valid, so send it to the UserSerializer
+        model_serializer = UserSerializer().create(serializer.data)
+        model_serializer.save()
 
-        if user_serializer.is_valid():
-            responseData['user_ID'] = user_serializer.create(data)
-            return Response(responseData, status = status.HTTP_201_CREATED)
+        return Response({'id':model_serializer.id},status=201)
 
-        if not user_serializer.is_valid():
-            for field, msg in user_serializer.errors.items():
-                responseData['errors'][field] = msg[-1]
+    @action(methods=['get'],detail=True)
+    def info(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
-        return Response(responseData, status=status.HTTP_400_BAD_REQUEST)
+    @permission_classes(SupPermission)
+    def list(self, request,*args,**kwargs):
+        user = request.user
+        if not user:
+            return JsonResponse(status=400)
+        return super(CreateUserViewSet, self).list(request)
+
+    def update(self, request, pk=None,*args,**kwargs):
+        user = User.objects.filter(id=pk).first()
+        if not user or request.user != user:
+            return JsonResponse(status=400)
+        return super(CreateUserViewSet, self).update(request)
 
 
 class Login(APIView):
@@ -94,46 +109,7 @@ class UpdateReservationStatus(APIView):
         reservation.save()
         return JsonResponse({'updated_fields': list(updated_fields.keys())})
 
-class SupervisorDetail(generics.RetrieveUpdateDestroyAPIView):
 
-    """ Retrieve, update or delete a supervisor instance."""
-    permissions_classes = (IsAuthenticated, SupPermission,)
-    queryset = Supervisor.objects.all()
-    serializer_class = SupervisorSerializer
-
-
-class SupervisorList(generics.ListAPIView):
-    """ List all supervisors. """
-    permissions_classes = (IsAuthenticated, SupPermission,)
-    queryset = Supervisor.objects.all()
-    serializer_class = SupervisorSerializer
-
-
-class TranslatorDetail(generics.RetrieveUpdateDestroyAPIView):
-
-    """ Retrieve, update or delete a translator instance."""
-    permissions_classes = (IsAuthenticated, SupPermission,)
-    queryset = Translator.objects.all()
-    serializer_class = TranslatorSerializer
-
-
-class TranslatorList(generics.ListAPIView):
-    """ List all translators. """
-    permissions_classes = (IsAuthenticated, SupPermission,)
-    queryset = Translator.objects.all()
-    serializer_class = TranslatorSerializer
-
-
-class CustomerDetail(generics.RetrieveUpdateDestroyAPIView):
-
-    """ Retrieve, update or delete a customer instance."""
-    permissions_classes = (IsAuthenticated, SupPermission,)
-    queryset = Customer.objects.all()
-    serializer_class = CustomerProfileSerializer
-
-
-class CustomerList(generics.ListAPIView):
-    """ List all customers. """
-    permissions_classes = (IsAuthenticated, SupPermission,)
-    queryset = Customer.objects.all()
-    serializer_class = CustomerProfileSerializer
+router = routers.SimpleRouter()
+router.register(r'supervisor-create', CreateUserViewSet)
+urlpatterns = router.urls
