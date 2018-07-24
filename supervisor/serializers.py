@@ -13,7 +13,6 @@ from django.contrib.auth import authenticate
 from . models import Supervisor
 from customer.models import Customer
 from translator.models import Translator
-from user.serializers import UserRegistrationSerializer,UserSerializer
 
 ROLE_CHOICES = (
     ('客户',0),
@@ -21,15 +20,6 @@ ROLE_CHOICES = (
     ('汉译英',2),
     ('英译汉',3),
 )
-
-
-class SupervisorSerializer(UserSerializer):
-    """ For display supervisor information purpose."""
-    role = serializers.CharField(read_only=True,default=1)
-
-    class Meta:
-        model = Supervisor
-        fields = 'role'
 
 class SupervisorLoginSerializer(serializers.ModelSerializer):
     """
@@ -58,31 +48,4 @@ class SupervisorLoginSerializer(serializers.ModelSerializer):
         user = authenticate(username=self.data['email'])
         supervisor = Supervisor(user=user)
         return supervisor
-
-
-class CreateUserSerializer(UserRegistrationSerializer):
-    """
-        Handle supervisor registration
-    """
-    tel = serializers.CharField()
-    address = serializers.CharField()
-
-    def create(self, validated_data):
-        user = User.objects.create_user(validated_data['username'], validated_data['email'],
-                                        validated_data['password'])
-        if validated_data['role'] == 0:  # create a customer type user
-            if not validated_data['tel'] or not validated_data['address']:  # customer type user requires tel and address info
-                raise serializers.ValidationError('信息填写不完整')
-            customer = Customer(user=user)
-            return customer.user_id
-        if validated_data['role'] == 1:  # create a supervisor type user
-            supervisor = Supervisor(user=user)
-            return supervisor.user_id
-        if validated_data['role'] == 2:  # create a translator_C2E type user
-            translator = Translator(user=user,role=0)
-            return translator.user_id
-        if validated_data['role'] == 3:  # create a translator_E2C type user
-            translator = Translator(user=user,role=1)
-            return translator.user_id
-
 
