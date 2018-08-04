@@ -18,13 +18,11 @@ from errors.reservation import InsufficientSpaceException, ImmutableFieldExcepti
 reservation_module = AModule()
 
 
-def _try_assign_timeslot(timeslot_id, reservation=None):
-    timeslot = TimeSlot.objects.get(timeslot_id=timeslot_id)
-    assert timeslot, "Unable to find time slot"
-    num_reg = SlotBind.objects.filter(timeslot_id=timeslot_id).count()
+def _try_assign_timeslot(timeslot, reservation=None):
+    num_reg = SlotBind.objects.filter(timeslot=timeslot).count()
     assert_or_throw(num_reg < timeslot.availability, InsufficientSpaceException())
     bind = SlotBind.objects.create(
-        timeslot_id=timeslot.timeslot_id,
+        timeslot=timeslot,
         reservation=reservation
     )
     return bind
@@ -37,7 +35,7 @@ class InitialCreate(APIView):
     @use_serializer(Serializer=CreateReservationSerializer, pass_in='data')
     def put(self, payload, format=None):
         res_id = uuid.uuid4()
-        slotbind = _try_assign_timeslot(payload['timeslot_id'])
+        slotbind = _try_assign_timeslot(payload['timeslot'])
         new_reservation = Reservation.objects.create(res_id=res_id, **payload)
         slotbind.reservation_id = new_reservation
         slotbind.save()
@@ -60,7 +58,7 @@ class Update(APIView):
 
         if "timeslot" in updated_fields:
             curr_slot = SlotBind.objects.filter(reservation_id=resid)[0]
-            new_slot = _try_assign_timeslot(updated_fields['timeslot'].timeslot_id, reservation=reservation)
+            new_slot = _try_assign_timeslot(updated_fields['timeslot'], reservation=reservation)
             curr_slot.delete()
 
         for attr, value in updated_fields.items():

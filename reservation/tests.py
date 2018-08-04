@@ -13,7 +13,7 @@ class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
         self.client = APITestClient()
         self.maxDiff = None
-        dummy = CommonSetup(hospital=1, disease=1)
+        dummy = self.dummy = CommonSetup(hospital=1, disease=1, customer=1, patient=1)
         self.hospital_id = dummy.hospital[0]
         self.disease_id = dummy.disease[0]
 
@@ -43,11 +43,11 @@ class ReservationModuleTest(APITestCaseExtend):
 
     def test_all_workflows(self):
         resv_init_sample = {
-            'user_id': uuid.uuid4(),
-            'patient_id': 1,
+            'user_id': self.dummy.customer[0],
+            'patient_id': self.dummy.patient[0],
             'hospital_id': self.hospital_id,
-            'disease_id': 1,
-            'timeslot_id': self.timeslot_ids[0],
+            'disease_id': self.disease_id,
+            'timeslot': self.timeslot_ids[0],
         }
 
         # Test create
@@ -112,19 +112,19 @@ class ReservationModuleTest(APITestCaseExtend):
 
     def test_insufficient_slot(self):
         place_taker_1 = {
-            'user_id': uuid.uuid4(),
-            'patient_id': 1,
+            'user_id': self.dummy.customer[0],
+            'patient_id': self.dummy.patient[0],
             'hospital_id': self.hospital_id,
-            'disease_id': 1,
-            'timeslot_id': self.timeslot_ids[0],
+            'disease_id': self.disease_id,
+            'timeslot': self.timeslot_ids[0],
         }
 
         place_taker_2 = {
-            'user_id': uuid.uuid4(),
-            'patient_id': 1,
+            'user_id': self.dummy.customer[0],
+            'patient_id': self.dummy.patient[0],
             'hospital_id': self.hospital_id,
-            'disease_id': 1,
-            'timeslot_id': self.timeslot_ids[1],
+            'disease_id': self.disease_id,
+            'timeslot': self.timeslot_ids[1],
         }
 
         # setup
@@ -156,7 +156,7 @@ class ReservationModuleTest(APITestCaseExtend):
                     "hospital_id": self.hospital_id,
                     "diseases": [
                         {
-                            "disease_id": 1,
+                            "disease_id": self.disease_id,
                             "date_slots": [
                                 {
                                     "date": datetime(2018, 1, 1),
