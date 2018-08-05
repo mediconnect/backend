@@ -23,9 +23,6 @@ class CreateUserTest(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        user = User.objects.get(email='demo1@demo.com')
-        supervisor = Supervisor.objects.get(user=user)
-        self.assertEqual(supervisor.user.email,'demo1@demo.com')
 
     def test_log_in(self):
         self.test_create_user()
@@ -39,5 +36,3 @@ class CreateUserTest(APITestCase):
             self.assertEqual(response.status_code,200)
         except AssertionError:
             print(response.content)
-        supervisor = Supervisor.objects.get(user=response.user)
-        self.assertEqual(supervisor.user.email,'demo1@demo.com')

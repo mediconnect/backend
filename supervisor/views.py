@@ -63,6 +63,7 @@ class CreateUserViewSet(ModelViewSet):
 
     def update(self, request, pk=None,*args,**kwargs):
         user = User.objects.filter(id=pk).first()
+
         if not user or request.user != user:
             return JsonResponse(status=400)
         return super(CreateUserViewSet, self).update(request)
@@ -78,7 +79,7 @@ class Login(APIView):
         supervisor_serializer = SupervisorLoginSerializer(data=data)
         if supervisor_serializer.is_valid():
 
-            supervisor_serializer.login()
+            supervisor_serializer.login(data)
             return JsonResponse({"msg": "success"}, status=200)
 
         if not supervisor_serializer.is_valid():

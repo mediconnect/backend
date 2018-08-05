@@ -33,21 +33,24 @@ class SupervisorLoginSerializer(serializers.ModelSerializer):
         fields = ('email','password')
 
     def validate(self,data):
-        email = data['email']
-        password = data['password']
+        email = data.get('email',None)
+        password = data.get('password',None)
         if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Email or Password doesn't Match")
+        else:
+            user = User.objects.get(email=email)
+            if not check_password(password,user.password):
+                raise serializers.ValidationError("Email or Password doesn't Match")
+            else:
+                if not Supervisor.objects.filter(user=user).exists():
+                    raise serializers.ValidationError("Email or Password doesn't Match")
+                else:
+                    supervisor = Supervisor.objects.get(email=email)
+                    data['id'] = supervisor.id
 
-            raise serializers.ValidationError('邮箱密码不正确')
-
-
-        user = authenticate(username=data['email'],password=data['password'])
-        if not Supervisor.objects.filter(user_id=user.id).exists():
-
-            raise serializers.ValidationError('邮箱密码不正确')
         return data
 
-    def login(self):
-        print('Perform Login')
+    def login(self,validated_data):
         user = authenticate(username=self.data['email'])
         supervisor = Supervisor(user=user)
         return supervisor
