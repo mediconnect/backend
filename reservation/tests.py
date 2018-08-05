@@ -1,3 +1,4 @@
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -174,3 +175,4 @@ class ReservationModuleTest(APITestCaseExtend):
         response = self.client.post(update_resv_url, data={'timeslot': self.timeslot_ids[0]})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Reservation.objects.get(res_id=rid2).timeslot_id, self.timeslot_ids[0])
+
