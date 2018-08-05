@@ -1,4 +1,3 @@
-from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import routers
 from rest_framework.permissions import IsAuthenticated
@@ -6,15 +5,12 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Disease
 from .serializers import DiseaseSerializer
 
-from atlas.guarantor import use_serializer, any_exception_throws_400
-from atlas.locator import AModule
 from atlas.permissions import SupPermission, TransPermission, ResPermission, IsOwnerOrReadOnly
 
 
-class HospitalViewSet(ModelViewSet):
+class DiseaseViewSet(ModelViewSet):
     queryset = Disease.objects.all()
     serializer_class = DiseaseSerializer
-    parser_classes = (MultiPartParser, FormParser,)
 
     def get_permissions(self):
         """
@@ -22,7 +18,7 @@ class HospitalViewSet(ModelViewSet):
         """
         if self.action == 'create':
             # If not original file, only supervisor and translator can create
-            permission_classes = [SupPermission]
+            permission_classes = []
         else:
             permission_classes = [SupPermission, IsAuthenticated]
 
@@ -30,5 +26,5 @@ class HospitalViewSet(ModelViewSet):
 
 
 router = routers.SimpleRouter()
-router.register(r'disease', Disease)
+router.register(r'disease', DiseaseViewSet)
 urlpatterns = router.urls
