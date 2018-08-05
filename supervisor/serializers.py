@@ -30,21 +30,24 @@ class SupervisorLoginSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Supervisor
-        fields = ('user.email','user.password')
+        fields = ('email','password')
 
     def validate(self,data):
         email = data['email']
         password = data['password']
-        if not User.objects.filter(email=email).exists()or not \
-                check_password(password, User.objects.get(email=email).password):
+        if not User.objects.filter(email=email).exists():
+
             raise serializers.ValidationError('邮箱密码不正确')
 
-        user = authenticate(username=self.data['email'])
-        if not Supervisor.objects.filter(user=user).exists():
+
+        user = authenticate(username=data['email'],password=data['password'])
+        if not Supervisor.objects.filter(user_id=user.id).exists():
+
             raise serializers.ValidationError('邮箱密码不正确')
         return data
 
     def login(self):
+        print('Perform Login')
         user = authenticate(username=self.data['email'])
         supervisor = Supervisor(user=user)
         return supervisor

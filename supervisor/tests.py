@@ -10,7 +10,7 @@ class CreateUserTest(APITestCase):
 
     def test_create_user(self):
         """
-        Ensure that we can create a hospital
+        Ensure that we can create users
         """
         url = reverse('user-list')
         data = {
@@ -19,10 +19,25 @@ class CreateUserTest(APITestCase):
             'confirmed_password':'password',
             'first_name':'de',
             'last_name':'mo',
-            'role':0
+            'role':1
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user = User.objects.get(email='demo1@demo.com')
-        customer = Customer.objects.get(user=user)
-        self.assertEqual(customer.user.email,'demo1@demo.com')
+        supervisor = Supervisor.objects.get(user=user)
+        self.assertEqual(supervisor.user.email,'demo1@demo.com')
+
+    def test_log_in(self):
+        self.test_create_user()
+        url = reverse('supervisor-login')
+        data = {
+            'email':'demo1@demo.com',
+            'password':'password',
+        }
+        response = self.client.post(url,data,format = 'json')
+        try:
+            self.assertEqual(response.status_code,200)
+        except AssertionError:
+            print(response.content)
+        supervisor = Supervisor.objects.get(user=response.user)
+        self.assertEqual(supervisor.user.email,'demo1@demo.com')

@@ -77,10 +77,12 @@ class Login(APIView):
 
         supervisor_serializer = SupervisorLoginSerializer(data=data)
         if supervisor_serializer.is_valid():
+
             supervisor_serializer.login()
             return JsonResponse({"msg": "success"}, status=200)
 
         if not supervisor_serializer.is_valid():
+
             for field, msg in supervisor_serializer.errors.items():
                 errors[field] = msg[-1]
         return JsonResponse(errors, status=400)
@@ -111,5 +113,5 @@ class UpdateReservationStatus(APIView):
 
 
 router = routers.SimpleRouter()
-router.register(r'supervisor-create', CreateUserViewSet)
+router.register(r'supervisor/user', CreateUserViewSet)
 urlpatterns = router.urls
