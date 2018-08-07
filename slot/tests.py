@@ -49,7 +49,7 @@ class SlotnModuleTest(APITestCase):
         self.assertEqual(len(resp_info['created']), TimeSlot.objects.count())
 
         # test uuid5 generation and database writeback
-        for slot_id in map(lambda i: TimeSlot.createID(hospital_ids[0], 1, 2018, i), range(1, 8)):
+        for slot_id in map(lambda i: TimeSlot.createID(hospital_ids[0], self.disease_id, 2018, i), range(1, 8)):
             slots = TimeSlot.objects.filter(timeslot_id=slot_id)
             self.assertEqual(slots.count(), 1)
             self.assertEqual(slots[0].availability, 5)
