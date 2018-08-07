@@ -1,36 +1,48 @@
+import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import List
 
 from django.contrib.auth.models import User
 
+from django.urls import reverse
+
+from rest_framework.test import APIClient,force_authenticate
+
 from hospital.models import Hospital
 from disease.models import Disease
 from customer.models import Customer
 from patient.models import Patient
 
+client = APIClient()
+
 
 def hospital_setup(num: int = 1) -> List:
-    Hospital.objects.bulk_create(
-        map(
-            lambda i: Hospital(
-                name="Dummy Hospital %d" % (i+1)
-            ),
-            range(num)
-        )
-    )
+    url = reverse('hospital-list')
+
+    for i in range(num):
+
+        data = {
+            'id':uuid.uuid4(),
+            'name':"Dummy Hospital %d" % i,
+            'email': 'demo%d@demo.com' % i,
+            'overall_rank': '%d' % i,
+        }
+        client.post(url, data, format='json')
+
     return list(map(lambda h: h.id, Hospital.objects.all()))
 
 
 def disease_setup(num: int = 1) -> List:
-    Disease.objects.bulk_create(
-        map(
-            lambda i: Disease(
-                name="Disease %d" % (i + 1)
-            ),
-            range(num)
-        )
-    )
+    url = reverse('disease-list')
+    for i in range(num):
+        data = {
+            'id': uuid.uuid4(),
+            'name': "Dummy Disease %d" % i,
+
+        }
+        client.post(url, data, format='json')
+
     return list(map(lambda d: d.id, Disease.objects.all()))
 
 
@@ -55,21 +67,28 @@ def customer_setup(num: int = 1) -> List:
 
 
 def patient_setup(customers: List, num: int = 1) -> List:
-    Patient.objects.bulk_create([
-        Patient(
-            user_id=customer,
-            first_name="Patient %d" % j,
-            last_name="of User %d" % i,
-            first_name_pinyin="Patient %d" % j,
-            last_name_pinyin="of User %d" % i,
-            gender='MF'[j % 2],
-            birthdate=datetime.now().date(),
-            relationship="ship",
-            passport="port"
-        )
-        for i, customer in enumerate(customers)
-        for j in range(num)
-    ])
+
+    url = reverse('patient-list')
+
+    for i in range(num):
+        for c_id in customers:
+            customer=Customer.objects.get(id=c_id)
+            client.force_login(user=customer.user)
+            data = {
+                'first_name':"Patient %d" % i,
+                'last_name':"of User %d" % i,
+                'first_name_pinyin':"Patient %d" % i,
+                'last_name_pinyin':"of User %d" % c_id,
+                'gender':'MF'[i % 2],
+                'birthdate':datetime.now().date(),
+                'relationship':"ship",
+                'passport':"port",
+                'notes':"something",
+
+            }
+            client.post(url, data, format='json')
+            client.logout()
+
     return list(map(lambda d: d.id, Patient.objects.all()))
 
 
