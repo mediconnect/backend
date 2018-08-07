@@ -21,5 +21,6 @@ class HospitalModuleTest(APITestCase):
             'average_score':0.0,
             'review_number':10
         }
+        print(url)
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

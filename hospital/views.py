@@ -14,18 +14,18 @@ class HospitalViewSet(ModelViewSet):
     queryset = Hospital.objects.all()
     serializer_class = HospitalSerializer
 
+    """
     def get_permissions(self):
-        """
-            Permission class based on action type
-        """
         if self.action == 'create':
             # If not original file, only supervisor and translator can create
             # permission_classes = [SupPermission]
             permission_classes=[]
         else:
             permission_classes = [SupPermission, IsAuthenticated]
-
+    
         return [permission() for permission in permission_classes]
+    """
+
 
 
 class HospitalReviewViewSet(ModelViewSet):

@@ -36,6 +36,7 @@ user
 
     def create(self, request, *args, **kwargs):
         serializer = DocumentSerializer(data = request.data)
+
         serializer.is_valid(raise_exception=True)
 
         serializer.save(owner=self.request.user,
