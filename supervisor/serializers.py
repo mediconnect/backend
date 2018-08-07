@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 # django
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password,make_password
 from django.contrib.auth import authenticate
 
 # other
@@ -36,16 +36,17 @@ class SupervisorLoginSerializer(serializers.ModelSerializer):
         email = data.get('email',None)
         password = data.get('password',None)
         if not User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email or Password doesn't Match")
+            raise serializers.ValidationError("0Email or Password doesn't Match")
         else:
             user = User.objects.get(email=email)
-            if not check_password(password,user.password):
-                raise serializers.ValidationError("Email or Password doesn't Match")
+            if not user.check_password(make_password(password)):
+
+                raise serializers.ValidationError("1Email or Password doesn't Match")
             else:
                 if not Supervisor.objects.filter(user=user).exists():
-                    raise serializers.ValidationError("Email or Password doesn't Match")
+                    raise serializers.ValidationError("2Email or Password doesn't Match")
                 else:
-                    supervisor = Supervisor.objects.get(email=email)
+                    supervisor = Supervisor.objects.get(user=user)
                     data['id'] = supervisor.id
 
         return data

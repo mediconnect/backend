@@ -13,6 +13,7 @@ from atlas.guarantor import use_serializer, any_exception_throws_400
 from atlas.locator import AModule
 from atlas.permissions import SupPermission,TransPermission,ResPermission, IsOwnerOrReadOnly
 
+import datetime
 
 class FileUploadViewSet(ModelViewSet):
     queryset = Document.objects.all()
@@ -26,7 +27,7 @@ class FileUploadViewSet(ModelViewSet):
         elif self.request.data.get('type') != 0 and self.action == 'create':
             # If not original file, only supervisor and translator can create
             permission_classes = [SupPermission, TransPermission]
-
+user
         else:
             permission_classes = [SupPermission, IsOwnerOrReadOnly]
 
@@ -39,12 +40,14 @@ class FileUploadViewSet(ModelViewSet):
 
         serializer.save(owner=self.request.user,
                         data=self.request.data.get('data'),
-                        type = self.request.data.get('type'))
+                        type = self.request.data.get('type'),
+                        upload_at = datetime.datetime.now(),
+                        resid = self.request.data.get('resid'))
 
         return Response({'id': serializer.id}, status=201)
 
 
 router = routers.SimpleRouter()
 
-router.register(r'document-upload', FileUploadViewSet)
+router.register(r'document', FileUploadViewSet)
 urlpatterns = router.urls

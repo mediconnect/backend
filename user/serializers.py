@@ -11,7 +11,7 @@ from rest_framework.validators import UniqueValidator
 
 # django
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password,check_password
 
 # other
 from .validators import validate_email_format,validate_password_complexity,validate_confirmed_password
@@ -33,21 +33,27 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+
         validated_data['password'] = make_password(validated_data['password'])
         validated_data['username'] = validated_data['email']
         create_data = {k:v for k,v in validated_data.items()
                        if k in [x.name for x in User._meta.get_fields()]}
         user = User.objects.create_user(**create_data)
+
         if validated_data['role'] == 0: # customer type
             customer = Customer(user=user)
+
             return customer
 
         elif validated_data['role'] == 1: # supervisor type
             supervisor = Supervisor(user=user)
+
             return supervisor
+
         elif validated_data['role'] == 2: # c2e translator type
             translator = Translator(user=user,role=0)
             return translator
+
         elif validated_data['role'] == 3: # e2c translator type
             translator = Translator(user=user,role=1)
             return translator

@@ -12,27 +12,25 @@ class CreateUserTest(APITestCase):
         """
         Ensure that we can create users
         """
+
         url = reverse('user-list')
         data = {
             'email':'demo1@demo.com',
-            'password':'password',
-            'confirmed_password':'password',
+            'password':'Password123!',
+            'confirmed_password':'Password123!',
             'first_name':'de',
             'last_name':'mo',
-            'role':1
+            'role':0
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_log_in(self):
-        self.test_create_user()
         url = reverse('supervisor-login')
         data = {
             'email':'demo1@demo.com',
-            'password':'password',
+            'password':'Password123!',
         }
         response = self.client.post(url,data,format = 'json')
-        try:
-            self.assertEqual(response.status_code,200)
-        except AssertionError:
-            print(response.content)
+        self.assertEqual(response.status_code,200)
+
