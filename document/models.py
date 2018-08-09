@@ -12,7 +12,7 @@ FEEDBACK = 2
 E2C_TRANSLATED = 3
 
 def res_directory_path(instance, filename):
-    return 'order_{0}/{1}/{2}'.format(instance.res.customer.get_name().strip(' '), instance.res.id,
+    return 'res_{0}/{1}'.format( instance.resid,
                                       http.urlquote(filename))
 
 
@@ -22,7 +22,7 @@ class Document(models.Model):
     owner = models.ForeignKey(User,on_delete = models.SET_NULL, null = True)
     description = models.CharField(max_length=50, blank=True)
     upload_at = models.DateTimeField(auto_now_add = True)
-    data = models.FileField(upload_to=res_directory_path)
+    file = models.FileField(upload_to=res_directory_path)
     obsolete = models.BooleanField(default=False)
     type = models.IntegerField(default = ORIGINAL)
 

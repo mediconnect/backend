@@ -1,53 +1,82 @@
 from django.urls import reverse
+from django.http import QueryDict
+from rest_framework.test import APITestCase,APIClient
 from rest_framework import status
-from rest_framework.test import  APITestCase
 
 from .models import Document
-from  reservation.models import Reservation
+from hospital.models import Hospital
+from disease.models import Disease
+from reservation.models import Reservation
 from customer.models import User,Customer
 from patient.models import Patient
+from slot.models.timeslot import TimeSlot
+
+from atlas.comparer import APITestCaseExtend, APITestClient
+from backend.common_test import CommonSetup
+
 import uuid
-import datetime
+from datetime import datetime, timedelta
 
 class UploadFileTest(APITestCase):
+    def setUp(self):
+        self.client = APITestClient()
+        dummy = self.dummy = CommonSetup(hospital=1,disease=1,customer=1,patient=1)
+        self.hospital_id = dummy.hospital[0]
+        self.disease_id = dummy.disease[0]
+
+        payload = [
+            {
+                "hospital_id": self.hospital_id,
+                "diseases": [
+                    {
+                        "disease_id": self.disease_id,
+                        "date_slots": [
+                            {
+                                "date": datetime(2018, 1, 1) + timedelta(days=dt * 7),
+                                "quantity": 1,
+                                "type": "add"
+                            }
+                            for dt in range(2)
+                        ]
+                    }
+                ]
+            }
+        ]
+
+        resp_info = self.client.json(method="POST", call_name="slot_publish_batch", data=payload)
+
+        self.timeslot_ids = list(map(uuid.UUID, resp_info['created']))
+        print(self.timeslot_ids[0])
+        res = Reservation(
+            **{
+            'res_id':uuid.uuid4(),
+            'user_id': Customer.objects.get(id=self.dummy.customer[0]),
+            'patient_id': Patient.objects.get(id=self.dummy.patient[0]),
+            'hospital_id': Hospital.objects.get(id=self.hospital_id),
+            'disease_id': Disease.objects.get(id=self.disease_id),
+            'timeslot': TimeSlot.objects.get(timeslot_id=self.timeslot_ids[0])})
+        res.save()
+        self.res_id = res.res_id
+
 
     def test_create_document(self):
         """
         Ensure that we can create document
         """
-        url = reverse('user-list')
-        user_data = {
-            'email': 'demo1@demo.com',
-            'password': 'Password123!',
-            'confirmed_password': 'Password123!',
-            'first_name': 'de',
-            'last_name': 'mo',
-            'role': 0
-        }
-        response = self.client.post(url, user_data, format='json')
-
-        customer = Customer.objects.get(user=User.objects.get(email='demo1@demo.com'))
-        patient = Patient(user=customer,
-                          first_name='de',
-                          last_name='mo',
-                          first_name_pinyin='dede',
-                          last_name_pinyin='momo',
-                          gender='M',
-                          birthdate=datetime.datetime.now(),
-                          relationship='other',
-                          passport='1234567')
-        patient.save()
-        res = Reservation.objects.all()[0]
-        print(res)
-        res.save()
-
-        url = reverse('document-list')
+        self.client = APIClient()
+        self.client.force_login(user=Customer.objects.get(id=self.dummy.customer[0]).user)
+        url = reverse('document-upload')
         data = {
-            'data':'2345',
+            'file':open('Murphy.txt'),
             'type':'2',
-            'resid':res.res_id,
-
+            'resid':self.res_id,
+            'obsolete':True,
+            'description':'Sth',
+            'extension':'pdf',
         }
-        response = self.client.post(url, data, format='json')
+        qd = QueryDict('',mutable=True)
+        qd.update(data)
+        response = self.client.post(url,qd,format='multipart')
+        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
