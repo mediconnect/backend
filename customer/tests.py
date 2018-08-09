@@ -126,8 +126,18 @@ class ProfileTestCase(TestCase):
         self.id = Customer.objects.get(user__email='profile@test.com').id
 
     def test_normal_profile_info_retrieve(self):
-        # TODO: Retrieve data with customer id.
-        pass
+        url = self.url + '?id=' + str(self.id)
+        status, body = test_general(url, None, 'get')
+        self.assertEqual(status, 200)
 
     def test_normal_profile_info_update(self):
-        pass
+        update_data = {
+            'id': self.id,
+            'tel': '1111',
+            'address': '2222'
+        }
+        status, body = test_general(self.url, update_data, 'put')
+        self.assertEqual(status, 200)
+        customer = Customer.objects.get(id=self.id)
+        self.assertEqual(customer.tel, '1111')
+        self.assertEqual(customer.address, '2222')

@@ -96,12 +96,12 @@ class Profile(APIView):
                 errors[field] = msg[-1]
             return JsonResponse(errors, status=400)
 
-        customer_profile_serializer.save()
+        customer_profile_serializer.update_wrapper()
         return JsonResponse({"msg": "success"}, status=200)
 
     def get(self, request, format=None):
-        print(request)
-        data = JSONParser().parse(request)
+        id = request.query_params.get('id')
+        data = {'id': id}
 
         customer_profile_serializer = CustomerProfileSerializer(data=data)
 
