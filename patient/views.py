@@ -1,44 +1,30 @@
-from django.http import JsonResponse
-from atlas.guarantor import use_serializer, any_exception_throws_400
-from atlas.locator import AModule
-from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
+from rest_framework import routers
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+from .serializers import  PatientSerializer
 from .models import Patient
-from .serializers import PatientSerializer, OptionalPatientSerializer
-
-patient_module = AModule()
-
-## For security reasons, change api to ~/customer/<customer_id>/patient/...? or ~/patient/<customer>/...
-
-@patient_module.route("create", name="patient_create")
-class Create(APIView):
-
-    @any_exception_throws_400
-    @use_serializer(Serializer=PatientSerializer)
-    def post(self, serializer, format=None):
-        posted = serializer.create(serializer.data)
-        return JsonResponse(PatientSerializer(posted).data)
+from customer.models import Customer
 
 
-@patient_module.route(r"(?<ptid>.+?)/info$", name="patient_get")
-class FetchRecord(APIView):
+class PatientViewSet(ModelViewSet):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
 
-    @any_exception_throws_400
-    def get(self, request, ptid, format=None):
-        instance = Patient.objects.get(id=ptid)
+    def create(self, request, *args, **kwargs):
 
-        return JsonResponse(PatientSerializer(instance).data)
-
-
-@patient_module.route(r"(?<ptid>.+?)/update$", name="patient_update")
-class Update(APIView):
-
-    @any_exception_throws_400
-    @use_serializer(Serializer=OptionalPatientSerializer)
-    def post(self, serializer, ptid, format=None):
-        instance = Patient.objects.get(id=ptid)
-
-        posted = serializer.update(instance, serializer.data)
-        return JsonResponse(PatientSerializer(posted).data)
+        user = request.user
+        request.data['user'] = Customer.objects.get(user=user).id
+        serializer = PatientSerializer(data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=201)
+        else:
+            return Response(serializer.errors,status=400)
+        # super(PatientViewSet, self).create(request,*args, **kwargs)
 
 
-urlpatterns = patient_module.urlpatterns
+router = routers.SimpleRouter()
+router.register(r'patient', PatientViewSet)
+urlpatterns = router.urls
