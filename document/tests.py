@@ -46,7 +46,7 @@ class UploadFileTest(APITestCase):
         resp_info = self.client.json(method="POST", call_name="slot_publish_batch", data=payload)
 
         self.timeslot_ids = list(map(uuid.UUID, resp_info['created']))
-        print(self.timeslot_ids[0])
+
         res = Reservation(
             **{
             'res_id':uuid.uuid4(),
@@ -60,23 +60,25 @@ class UploadFileTest(APITestCase):
 
 
     def test_create_document(self):
+
         """
         Ensure that we can create document
         """
         self.client = APIClient()
         self.client.force_login(user=Customer.objects.get(id=self.dummy.customer[0]).user)
-        url = reverse('document-upload')
+        url = reverse('document-list')
         data = {
             'file':open('Murphy.txt'),
             'type':'2',
             'resid':self.res_id,
             'obsolete':True,
             'description':'Sth',
-            'extension':'pdf',
         }
         qd = QueryDict('',mutable=True)
         qd.update(data)
+
         response = self.client.post(url,qd,format='multipart')
-        print(response.content)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        print(response.data)
 

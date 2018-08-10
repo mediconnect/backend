@@ -1,5 +1,5 @@
 from rest_framework.parsers import FormParser, MultiPartParser, FileUploadParser
-from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework import routers
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
@@ -10,13 +10,15 @@ from django.http import JsonResponse,Http404
 from document.models import Document
 from document.serializer import DocumentSerializer
 import uuid
+import os.path
 
 from atlas.permissions import SupPermission,TransPermission,ResPermission, IsOwnerOrReadOnly
 
 import datetime
 
-class FileUploadView(APIView):
-
+class FileUploadViewSet(ModelViewSet):
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
     parser_classes = (FormParser,MultiPartParser)
     """
      def get_permissions(self):
@@ -33,27 +35,28 @@ user
         return [permission() for permission in permission_classes]
     """
 
-    def post(self, request,*args, **kwargs):
+    def create(self, request, *args, **kwargs):
         mutable = request.POST._mutable
         request.POST._mutable = True
 
         request.data.update({'id' : uuid.uuid4(),
                              'owner':request.user.id,
-                             'upload_at':datetime.datetime.now()})
-        print(request.data)
+                             'upload_at':datetime.datetime.now(),
+                             'extensions':os.path.splitext(request.data['file'].name)[1]})
         request.POST._mutable = mutable
 
         serializer = DocumentSerializer(data=request.data,)
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+            print(serializer.data)
+
+
             return Response({'msg':'Created','id':serializer.data['id']}, status=201)
+
         else:
             return Response(serializer.errors, status=400)
 
-
-from django.urls import path
-
-urlpatterns = [
-    path('^document/upload/', FileUploadView.as_view(), name='document-upload'),
-]
+router = routers.SimpleRouter()
+router.register(r'document/', FileUploadViewSet)
+urlpatterns = router.urls
