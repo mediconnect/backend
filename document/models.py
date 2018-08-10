@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone, http
 from django.contrib.auth.models import User
 
+
 from reservation.models import Reservation
 
 import uuid
@@ -12,8 +13,7 @@ FEEDBACK = 2
 E2C_TRANSLATED = 3
 
 def res_directory_path(instance, filename):
-    return 'res_{0}/{1}'.format( instance.resid,
-                                      http.urlquote(filename))
+    return 'res_{0}/{1}'.format(instance.resid.res_id,http.urlquote(filename))
 
 
 class Document(models.Model):
