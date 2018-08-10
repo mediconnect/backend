@@ -2,7 +2,8 @@ import uuid
 from django.db import models
 from customer.models import Customer
 from patient.models import Patient
-from translator.models import Translator
+from staff.models.translator import Translator
+from staff.models.supervisor import Supervisor
 from hospital.models import Hospital
 from disease.models import Disease
 from slot.models.timeslot import TimeSlot

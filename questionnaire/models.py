@@ -6,7 +6,7 @@ import django.utils.encoding as encode
 from django.utils import http
 from django.conf import settings
 
-from translator.models import Translator
+from staff.models.translator import Translator
 from hospital.models import Hospital
 from disease.models import Disease
 
@@ -26,26 +26,3 @@ class Questionnaire(models.Model):
 
     class Meta:
         db_table = 'db_questionnaire'
-
-    def save(self, *args, **kwargs):  # override_save method
-        """
-
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        self.questions_path = questions_path(self, self.questions)
-        self.origin_pdf_path = questions_path(self,self.origin_pdf)
-        super(Questionnaire, self).save(*args, **kwargs)
-
-    def get_questions_name(self):
-        return self.category+' 问题模板: '+ encode.uri_to_iri(self.questions_path)
-
-    def get_origin_pdf_name(self):
-        return self.category+' 原始pdf: '+ encode.uri_to_iri(self.origin_pdf_path)
-
-    def get_questions_path(self):
-        return (self.questions_path[(str.find(str(self.questions_path), '%')):], str(os.path.join(settings.MEDIA_ROOT, str(self.questions))))
-
-    def get_origin_pdf_path(self):
-        return (self.origin_pdf_path[(str.find(str(self.origin_pdf_path), '%')):], str(os.path.join(settings.MEDIA_ROOT, str(self.origin_pdf))))

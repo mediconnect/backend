@@ -9,7 +9,7 @@ urlpatterns = [
     path('api/customer/', include('customer.urls')),
     path('api/reservation/', include('reservation.views')),
     path('api/slot/', include('slot.views')),
-    path('api/', include('supervisor.urls')),
+    path('api/', include('staff.views')),
     path('api/',include('document.views')),
     path('api/',include('hospital.views')),
     path('api/',include('disease.views')),
