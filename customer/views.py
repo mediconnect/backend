@@ -15,27 +15,30 @@ class Register(APIView):
         user_serializer = UserRegistrationSerializer(data=data['auth'])
         customer_serializer = CustomerRegistrationSerializer(data=data['customer'])
 
+        user_info_valid, customer_info_valid = user_serializer.is_valid(), customer_serializer.is_valid()
+
         # Validate both data but leave the user foreign key as empty.
-        if user_serializer.is_valid() and customer_serializer.is_valid() \
-                and self._validate_password_confirmation(data['auth'], errors):
+        if user_info_valid and customer_info_valid and self._validate_password_confirmation(data['auth'], errors):
             user = user_serializer.save()
 
             # After saving user to DB, update the customer serializer.
-            data['user'] = user.id
-            customer_serializer = CustomerRegistrationSerializer(data=data)
-            if customer_serializer.is_valid():
+            data['customer']['user'] = user.id
+            customer_serializer = CustomerRegistrationSerializer(data=data['customer'])
+            customer_info_valid = customer_serializer.is_valid()
+            if customer_info_valid:
                 customer_serializer.save()
-            return JsonResponse({"msg": "success"}, status=200)
+                return JsonResponse({"msg": "success"}, status=200)
 
         # Gather error from serializer. Because the strange design of Django
         # serializer, we need call is_valid before accessing its attributes.
-        if not user_serializer.is_valid():
+        if not user_info_valid:
             for field, msg in user_serializer.errors.items():
                 errors[field] = msg[-1]
-        if not customer_serializer.is_valid():
+        if not customer_info_valid:
             for field, msg in customer_serializer.errors.items():
                 errors[field] = msg[-1]
-        self._validate_password_confirmation(data['auth'], errors)
+        if user_info_valid and customer_info_valid:
+            self._validate_password_confirmation(data['auth'], errors)
         return JsonResponse(errors, status=400)
 
     def _validate_password_confirmation(self, data, errors):
@@ -83,7 +86,7 @@ class Profile(APIView):
     def put(self, request, format=None):
         data = JSONParser().parse(request)
 
-        customer_profile_serializer = CustomerProfileSerializer(data)
+        customer_profile_serializer = CustomerProfileSerializer(data=data)
 
         # Gather error from serializer. Because the strange design of Django
         # serializer, we need call is_valid before accessing its attributes.
@@ -93,13 +96,14 @@ class Profile(APIView):
                 errors[field] = msg[-1]
             return JsonResponse(errors, status=400)
 
-        customer_profile_serializer.save()
+        customer_profile_serializer.update_wrapper()
         return JsonResponse({"msg": "success"}, status=200)
 
     def get(self, request, format=None):
-        data = JSONParser().parse(request)
+        id = request.query_params.get('id')
+        data = {'id': id}
 
-        customer_profile_serializer = CustomerProfileSerializer(data)
+        customer_profile_serializer = CustomerProfileSerializer(data=data)
 
         # Gather error from serializer. Because the strange design of Django
         # serializer, we need call is_valid before accessing its attributes.
