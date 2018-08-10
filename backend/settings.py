@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'document.apps.DocumentConfig',
     'slot.apps.SlotConfig',
     'requirement.apps.RequirementConfig',
+    'rank.apps.RankConfig'
 ]
 
 MIDDLEWARE = [
