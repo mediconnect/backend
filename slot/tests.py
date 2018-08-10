@@ -1,26 +1,33 @@
+
 import json
 import uuid
 from datetime import datetime, timedelta
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
-from .models import SlotBind, TimeSlot
+from .models.slotbind import SlotBind
+from .models.timeslot import TimeSlot
 from atlas.creator import fetch_partial_dict
+from backend.common_test import CommonSetup
 
 
 class SlotnModuleTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
+        self.maxDiff = None
+        dummy = self.dummy = CommonSetup(hospital=4, disease=1, customer=1, patient=1)
+        self.hospital_ids = dummy.hospital
+        self.disease_id = dummy.disease[0]
 
     def test_slot_publish(self):
-        hospital_ids = list(map(lambda x: uuid.uuid4(), range(4)))
+        hospital_ids = self.hospital_ids
 
         payload = [
             {
                 "hospital_id": hospital_ids[0],
                 "diseases": [
                     {
-                        "disease_id": 1,
+                        "disease_id": self.disease_id,
                         "date_slots": [
                             {
                                 "date": datetime(2018, 1, 1) + timedelta(days=dt*7),
@@ -42,7 +49,7 @@ class SlotnModuleTest(APITestCase):
         self.assertEqual(len(resp_info['created']), TimeSlot.objects.count())
 
         # test uuid5 generation and database writeback
-        for slot_id in map(lambda i: TimeSlot.createID(hospital_ids[0], 1, 2018, i), range(1,8)):
+        for slot_id in map(lambda i: TimeSlot.createID(hospital_ids[0], self.disease_id, 2018, i), range(1, 8)):
             slots = TimeSlot.objects.filter(timeslot_id=slot_id)
             self.assertEqual(slots.count(), 1)
             self.assertEqual(slots[0].availability, 5)
@@ -52,7 +59,7 @@ class SlotnModuleTest(APITestCase):
                 "hospital_id": hospital_ids[0],
                 "diseases": [
                     {
-                        "disease_id": 1,
+                        "disease_id": self.disease_id,
                         "date_slots": [
                             {
                                 "date": datetime(2018, 1, 1) + timedelta(days=4 * 7),

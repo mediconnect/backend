@@ -7,7 +7,6 @@ class HospitalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hospital
         fields = '__all__'
-        read_only_fields =('average_score','review_number',)
 
 
 class HospitalReviewSerializer(serializers.ModelSerializer):

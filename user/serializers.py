@@ -7,17 +7,11 @@ from rest_framework.validators import UniqueValidator
 
 # django
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import authenticate
 
 # other
-from .validators import validate_email_format,validate_password_complexity
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """ Base serializer for display user information."""
-    class Meta:
-        model = User
-        exclude = ('password','is_supervisor','is_staff','username',)
+from .validators import validate_email_format,validate_password_complexity,validate_confirmed_password
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -31,21 +25,62 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     )
     password = serializers.CharField(
         required = True,
-        validators = [validate_password_complexity]
+        validators = [validate_password_complexity,validate_confirmed_password]
     )
-    confirmed_password = serializers.CharField(
-        required = True,
-        # validators = [validate_password_match(password=password)]
-    )
+    confirmed_password = serializers.CharField()
 
     first_name = serializers.CharField(required= True)
     last_name = serializers.CharField(required= True)
-
-    def create(self, validated_data):
-        user = User.objects.create_user(validated_data['username'], validated_data['email'],
-                                        make_password(validated_data['password']))
-        return user
+    role = serializers.IntegerField()
 
     class Meta:
         model = User
-        fields = ('email', 'password', 'first_name', 'last_name','tel','address')
+        fields = ('email', 'password','confirmed_password', 'first_name', 'last_name','role')
+
+    def create(self, validated_data):
+        """ Create and return a new Customer instance, given the validated data. """
+        return User.objects.create(
+            username=validated_data['email'],
+            email=validated_data['email'],
+            password=make_password(validated_data['password']),
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
+        )
+
+    def validate(self, data):
+        if not data.get('password') or not data.get('confirmed_password'):
+            raise serializers.ValidationError("Please enter a password and "
+                                              "confirm it.")
+
+        if data.get('password') != data.get('confirmed_password'):
+            raise serializers.ValidationError("Those passwords don't match.")
+
+        return data
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    """ Serializer for login user. """
+
+    class Meta:
+        model = User
+        fields = ('email', 'password')
+
+    def __init__(self, *args, **kwargs):
+        super(UserLoginSerializer, self).__init__(*args, **kwargs)
+
+    def validate(self, data):
+        """ Validate email exists in the DB. """
+        for field_name in self.fields:
+            if field_name not in data or data[field_name] is None or len(data[field_name]) <= 0:
+                raise serializers.ValidationError({field_name: ['Cannot Be Blank']})
+
+        email = data['email']
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({'email': ['Email Does Not Exist']})
+        elif not check_password(data['password'], User.objects.get(email=email).password):
+            raise serializers.ValidationError({'password': ['Password Does Not Match']})
+
+        return data
+
+    def login(self):
+        user = authenticate(username=self.data['email'])
+        return user

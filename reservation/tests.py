@@ -1,3 +1,4 @@
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -5,21 +6,24 @@ import json
 import uuid
 from datetime import datetime, timedelta
 from .models import Reservation
-from atlas.comparer import APITestCaseExtend
+from atlas.comparer import APITestCaseExtend, APITestClient
+from backend.common_test import CommonSetup
 
 # Create your tests here.
 class ReservationModuleTest(APITestCaseExtend):
     def setUp(self):
-        self.client = APIClient()
+        self.client = APITestClient()
         self.maxDiff = None
-        self.hospital_id = uuid.uuid4()
+        dummy = self.dummy = CommonSetup(hospital=1, disease=1, customer=1, patient=1)
+        self.hospital_id = dummy.hospital[0]
+        self.disease_id = dummy.disease[0]
 
         payload = [
             {
                 "hospital_id": self.hospital_id,
                 "diseases": [
                     {
-                        "disease_id": 1,
+                        "disease_id": self.disease_id,
                         "date_slots": [
                             {
                                 "date": datetime(2018, 1, 1) + timedelta(days=dt*7),
@@ -33,30 +37,26 @@ class ReservationModuleTest(APITestCaseExtend):
             }
         ]
 
-        create_slot_url = reverse("slot_publish_batch")
-        response = self.client.post(create_slot_url, payload, format='json')
-        resp_info = json.loads(response.content)
+        resp_info = self.client.json(method="POST", call_name="slot_publish_batch", data=payload)
 
         self.timeslot_ids = list(map(uuid.UUID, resp_info['created']))
 
 
     def test_all_workflows(self):
         resv_init_sample = {
-            'user_id': uuid.uuid4(),
-            'patient_id': 1,
+            'user_id': self.dummy.customer[0],
+            'patient_id': self.dummy.patient[0],
             'hospital_id': self.hospital_id,
-            'disease_id': 1,
-            'timeslot_id': self.timeslot_ids[0],
+            'disease_id': self.disease_id,
+            'timeslot': self.timeslot_ids[0],
         }
 
         # Test create
-        create_resv_url = reverse("reservation_init")
-        response = self.client.put(create_resv_url, resv_init_sample, format='json')
-        self.assertEqual(response.status_code, 200)
+        resobj = self.client.json(method="PUT", call_name="reservation_init", data=resv_init_sample)
         self.assertEqual(Reservation.objects.count(), 1)
 
         # Test get and create result
-        resvid = json.loads(response.content)['rid']
+        resvid = resobj['rid']
 
         get_resv_url = reverse("reservation_get", kwargs={'resid': resvid})
         response = self.client.get(get_resv_url)
@@ -113,19 +113,19 @@ class ReservationModuleTest(APITestCaseExtend):
 
     def test_insufficient_slot(self):
         place_taker_1 = {
-            'user_id': uuid.uuid4(),
-            'patient_id': 1,
+            'user_id': self.dummy.customer[0],
+            'patient_id': self.dummy.patient[0],
             'hospital_id': self.hospital_id,
-            'disease_id': 1,
-            'timeslot_id': self.timeslot_ids[0],
+            'disease_id': self.disease_id,
+            'timeslot': self.timeslot_ids[0],
         }
 
         place_taker_2 = {
-            'user_id': uuid.uuid4(),
-            'patient_id': 1,
+            'user_id': self.dummy.customer[0],
+            'patient_id': self.dummy.patient[0],
             'hospital_id': self.hospital_id,
-            'disease_id': 1,
-            'timeslot_id': self.timeslot_ids[1],
+            'disease_id': self.disease_id,
+            'timeslot': self.timeslot_ids[1],
         }
 
         # setup
@@ -157,7 +157,7 @@ class ReservationModuleTest(APITestCaseExtend):
                     "hospital_id": self.hospital_id,
                     "diseases": [
                         {
-                            "disease_id": 1,
+                            "disease_id": self.disease_id,
                             "date_slots": [
                                 {
                                     "date": datetime(2018, 1, 1),
@@ -175,3 +175,4 @@ class ReservationModuleTest(APITestCaseExtend):
         response = self.client.post(update_resv_url, data={'timeslot': self.timeslot_ids[0]})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Reservation.objects.get(res_id=rid2).timeslot_id, self.timeslot_ids[0])
+
