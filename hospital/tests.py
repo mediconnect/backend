@@ -39,3 +39,4 @@ class HospitalModuleTest(APITestCase):
         for each in response.data:
             for k,v in query.items():
                 self.assertEqual(each.get(k),v)
+

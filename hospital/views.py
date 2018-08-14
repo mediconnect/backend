@@ -38,8 +38,6 @@ class HospitalViewSet(ModelViewSet):
 
 
 
-
-
 class HospitalReviewViewSet(ModelViewSet):
     queryset = HospitalReview.objects.all()
     serializer_class = HospitalReviewSerializer
