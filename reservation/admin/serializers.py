@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import  check_password
+
+from reservation.models import Reservation
 
 
 class ReservationUpdateSerializer(serializers.ModelSerializer):
@@ -12,31 +14,36 @@ class ReservationUpdateSerializer(serializers.ModelSerializer):
     trans_status = serializers.IntegerField()
     note = serializers.CharField()
 
-class ValidationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reservation
+        fields = '__all__'
+        read_only_fields = (
+            "res_id", "user_id", "patient_id", "hospital_id", "disease_id",
+            "ctime", "commit_at"
+        )
+
+
+class ValidationSerializer(serializers.Serializer):
     """
     Serializer to valid user's pass word and authorize operation.
     """
-    class Meta:
-        model = User
-        fields = ('password')
+    user_id = serializers.IntegerField()
+    password = serializers.CharField()
+    update_data = serializers.DictField()
 
     def __init__(self, *args, **kwargs):
         super(ValidationSerializer, self).__init__(*args, **kwargs)
 
     def validate(self, data):
-        """ Validate email exists in the DB. """
-        for field in self.fields:
-            if field not in data or data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError({field: ['Cannot Be Blank']})
 
-        user = data['user']
-        status = data['status']
-        allowed_status = data['allowed_status']
+
+        user = User.objects.get(id=data['user_id'])
+        update_data = data['update_data']
+
+        # TODO: validate update data
+        print(check_password(data['password'],user.password))
         if not check_password(data['password'], user.password):
-            raise serializers.ValidationError({'authorization': ['Authorization Denied']})
 
-        if not status in allowed_status:
-            raise serializers.ValidationError({
-                'authorization': ['This operation cannot be performed at this time']})
+            raise serializers.ValidationError({'authorization': ['Authorization Denied']})
 
         return data
