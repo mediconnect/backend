@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Application definition
 
@@ -43,14 +45,14 @@ INSTALLED_APPS = [
     'customer.apps.CustomerConfig',
     'patient.apps.PatientConfig',
     'reservation.apps.ReservationConfig',
-    'supervisor.apps.SupervisorConfig',
-    'translator.apps.TranslatorConfig',
+    'staff.apps.StaffConfig',
     'questionnaire.apps.QuestionnaireConfig',
     'hospital.apps.HospitalConfig',
     'disease.apps.DiseaseConfig',
     'document.apps.DocumentConfig',
     'slot.apps.SlotConfig',
     'requirement.apps.RequirementConfig',
+    'rank.apps.RankConfig'
 ]
 
 MIDDLEWARE = [
@@ -145,4 +147,9 @@ STATIC_URL = '/static/'
 # Rest Framework specific
 REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'TEST_REQUEST_RENDERER_CLASSES': (
+        'rest_framework.renderers.MultiPartRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.TemplateHTMLRenderer'
+    )
 }

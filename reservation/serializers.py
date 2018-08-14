@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from .models import Reservation
 from atlas.creator import create_optional_field_serializer
+
+from .models import Reservation
+from customer.models import Customer
+from patient.models import Patient
+from hospital.models import Hospital, Disease
+from slot.models.timeslot import TimeSlot
 
 
 class ReservationSerializer(serializers.ModelSerializer):
@@ -19,8 +24,8 @@ CompleteReservationSerializer = create_optional_field_serializer(ReservationSeri
 
 
 class CreateReservationSerializer(serializers.Serializer):
-    user_id = serializers.UUIDField()
-    patient_id = serializers.IntegerField()
-    hospital_id = serializers.UUIDField()
-    disease_id = serializers.IntegerField()
-    timeslot_id = serializers.UUIDField()
+    user_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
+    patient_id = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    hospital_id = serializers.PrimaryKeyRelatedField(queryset=Hospital.objects.all())
+    disease_id = serializers.PrimaryKeyRelatedField(queryset=Disease.objects.all())
+    timeslot = serializers.PrimaryKeyRelatedField(queryset=TimeSlot.objects.all())

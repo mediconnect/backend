@@ -21,7 +21,7 @@ before_script:
     - sudo service mysql restart
 script:
     - python manage.py makemigrations
-    - python manage.py migrate --fake-initial
+    - python manage.py migrate 
     - python manage.py test
 notifications:
     slack: yiconfirmed:Y9HLCvmAzM2B35cZEiyU9bwd

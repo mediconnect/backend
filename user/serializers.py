@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# project
-from customer.models import Customer
-from supervisor.models import Supervisor
-from translator.models import Translator
 
 # rest_framework
 from rest_framework import serializers
@@ -11,49 +7,14 @@ from rest_framework.validators import UniqueValidator
 
 # django
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import authenticate
 
 # other
 from .validators import validate_email_format,validate_password_complexity,validate_confirmed_password
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """ Base serializer for display user information."""
-    class Meta:
-        model = User
-        fields = ('id', 'email', 'first_name', 'last_name',)
-        write_only_fields = ('username',)
-
-    def validate(self, data):
-        # Making sure the username always matches the email
-        email = data.get('email', None)
-        if email:
-            data['username'] = email
-
-        return data
-
-    def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
-        validated_data['username'] = validated_data['email']
-        create_data = {k:v for k,v in validated_data.items()
-                       if k in [x.name for x in User._meta.get_fields()]}
-        user = User.objects.create_user(**create_data)
-        if validated_data['role'] == 0: # customer type
-            customer = Customer(user=user)
-            return customer
-
-        elif validated_data['role'] == 1: # supervisor type
-            supervisor = Supervisor(user=user)
-            return supervisor
-        elif validated_data['role'] == 2: # c2e translator type
-            translator = Translator(user=user,role=0)
-            return translator
-        elif validated_data['role'] == 3: # e2c translator type
-            translator = Translator(user=user,role=1)
-            return translator
-
-
-class UserRegistrationSerializer(serializers.Serializer):
+class UserRegistrationSerializer(serializers.ModelSerializer):
     """
         Use this as a base user type registration serializer, all other user type serializer can inherit this
     """
@@ -64,13 +25,27 @@ class UserRegistrationSerializer(serializers.Serializer):
     )
     password = serializers.CharField(
         required = True,
-        validators = [validate_password_complexity]
+        validators = [validate_password_complexity,validate_confirmed_password]
     )
     confirmed_password = serializers.CharField()
 
     first_name = serializers.CharField(required= True)
     last_name = serializers.CharField(required= True)
     role = serializers.IntegerField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'password','confirmed_password', 'first_name', 'last_name','role')
+
+    def create(self, validated_data):
+        """ Create and return a new Customer instance, given the validated data. """
+        return User.objects.create(
+            username=validated_data['email'],
+            email=validated_data['email'],
+            password=make_password(validated_data['password']),
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
+        )
 
     def validate(self, data):
         if not data.get('password') or not data.get('confirmed_password'):
@@ -81,3 +56,31 @@ class UserRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError("Those passwords don't match.")
 
         return data
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    """ Serializer for login user. """
+
+    class Meta:
+        model = User
+        fields = ('email', 'password')
+
+    def __init__(self, *args, **kwargs):
+        super(UserLoginSerializer, self).__init__(*args, **kwargs)
+
+    def validate(self, data):
+        """ Validate email exists in the DB. """
+        for field_name in self.fields:
+            if field_name not in data or data[field_name] is None or len(data[field_name]) <= 0:
+                raise serializers.ValidationError({field_name: ['Cannot Be Blank']})
+
+        email = data['email']
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({'email': ['Email Does Not Exist']})
+        elif not check_password(data['password'], User.objects.get(email=email).password):
+            raise serializers.ValidationError({'password': ['Password Does Not Match']})
+
+        return data
+
+    def login(self):
+        user = authenticate(username=self.data['email'])
+        return user

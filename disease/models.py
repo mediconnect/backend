@@ -8,8 +8,3 @@ class Disease(models.Model):
     class Meta:
         db_table = 'db_disease'
 
-    def get_name(self):
-        return self.name
-
-    def get_id(self):
-        return self.id

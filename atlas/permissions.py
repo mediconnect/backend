@@ -4,8 +4,8 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 # django
 
 # other
-from supervisor.models import Supervisor
-from translator.models import Translator
+from staff.models.supervisor import Supervisor
+from staff.models.translator import Translator
 from reservation.models import Reservation
 from hospital.models import Hospital
 from django.contrib.auth.models import User

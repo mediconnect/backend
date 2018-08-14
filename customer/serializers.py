@@ -18,11 +18,13 @@ class CustomerProfileSerializer(serializers.Serializer):
     address = serializers.CharField(required=False)
 
     def create(self, validated_data):
-        """
-            Get already created customer.
-        """
-        self.instance = Customer.objects.get(id=id)
+        self.instance = Customer.objects.get(id=self.validated_data['id'])
         self.user = self.instance.user
+        return self.instance
+
+    def update_wrapper(self):
+        self.instance = Customer.objects.get(id=self.validated_data['id'])
+        self.update(self.instance, self.validated_data)
 
     def update(self, instance, validated_data):
         instance.tel = validated_data['tel']
@@ -30,18 +32,24 @@ class CustomerProfileSerializer(serializers.Serializer):
         instance.save()
 
     def get(self):
+        self.instance = Customer.objects.get(id=self.validated_data['id'])
+        self.user = self.instance.user
+        self.validated_data['tel'] = self.instance.tel
+        self.validated_data['address'] = self.instance.address
+
         ukeys = ['first_name', 'last_name', 'email']
         data = dict()
         for field in ukeys:
-            data[field] = self.user[field]
+            data[field] = self.user.serializable_value(field)
 
-        data['tel'] = self.tel
-        data['address'] = self.address
+        data['tel'] = self.validated_data['tel']
+        data['address'] = self.validated_data['address']
         return data
 
     def validate(self, data):
-        for field in self.fields:
-            if field.required and (field not in data or data[field] is None or len(data[field]) <= 0):
+        for field_name in self.fields:
+            field = self.fields[field_name]
+            if field.required and (field_name not in data or data[field_name] is None):
                 raise serializers.ValidationError({field: ['Cannot Be Blank']})
         return data
 
@@ -71,11 +79,11 @@ class CustomerRegistrationSerializer(serializers.Serializer):
 
     def validate(self, data):
         """ Validate all fields are filled. """
-        for field in self.fields:
-            if field == 'user':
+        for field_name in self.fields:
+            if field_name == 'user':
                 continue
-            if field not in data or data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError({field: ['Cannot Be Blank']})
+            if field_name not in data or data[field_name] is None or len(data[field_name]) <= 0:
+                raise serializers.ValidationError({field_name: ['Cannot Be Blank']})
         return data
 
 
@@ -101,9 +109,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """ Validate all fields are filled. """
-        for field in self.fields:
-            if field not in data or data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError({field: ['Cannot Be Blank']})
+        for field_name in self.fields:
+            if field_name not in data or data[field_name] is None or len(data[field_name]) <= 0:
+                raise serializers.ValidationError({field_name: ['Cannot Be Blank']})
         return data
 
     def validate_email(self, email):
@@ -133,9 +141,9 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """ Validate email exists in the DB. """
-        for field in self.fields:
-            if field not in data or data[field] is None or len(data[field]) <= 0:
-                raise serializers.ValidationError({field: ['Cannot Be Blank']})
+        for field_name in self.fields:
+            if field_name not in data or data[field_name] is None or len(data[field_name]) <= 0:
+                raise serializers.ValidationError({field_name: ['Cannot Be Blank']})
 
         email = data['email']
         if not User.objects.filter(email=email).exists():
