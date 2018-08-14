@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List
 
 from django.contrib.auth.models import User
-
+from django.contrib.auth.hashers import make_password
 from django.urls import reverse
 
 from rest_framework.test import APIClient,force_authenticate
@@ -13,11 +13,23 @@ from hospital.models import Hospital
 from disease.models import Disease
 from customer.models import Customer
 from patient.models import Patient
+from staff.models.supervisor import Supervisor
 
 client = APIClient()
 
 
+def supervisor_setup():
+
+    user = User(email='sup4Common@test.com', password=make_password('/.,Buz123'))
+    user.save()
+    supervisor = Supervisor(user=user)
+    supervisor.save()
+
+    return supervisor.user
+
+
 def hospital_setup(num: int = 1) -> List:
+
     url = reverse('hospital-list')
 
     for i in range(num):
@@ -34,6 +46,7 @@ def hospital_setup(num: int = 1) -> List:
 
 
 def disease_setup(num: int = 1) -> List:
+
     url = reverse('disease-list')
     for i in range(num):
         data = {
@@ -42,7 +55,6 @@ def disease_setup(num: int = 1) -> List:
 
         }
         client.post(url, data, format='json')
-
     return list(map(lambda d: d.id, Disease.objects.all()))
 
 
@@ -63,11 +75,11 @@ def customer_setup(num: int = 1) -> List:
             users
         )
     )
+
     return list(map(lambda d: d.id, Customer.objects.all()))
 
 
 def patient_setup(customers: List, num: int = 1) -> List:
-
     url = reverse('patient-list')
 
     for i in range(num):
@@ -110,7 +122,12 @@ class CommonSetup:
             kwkey = '_'.join(kwsplits)
             kwargs_map[kwspace][kwkey] = arg
 
+        self.supervisor = supervisor_setup()
+        client.force_login(self.supervisor)
         self.hospital = hospital_setup(hospital)
         self.disease = disease_setup(disease)
+        client.logout()
+
         self.customer = customer_setup(customer)
         self.patient = patient_setup(self.customer, patient)
+

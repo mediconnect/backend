@@ -2,20 +2,24 @@ from rest_framework.test import APITestCase,APIClient
 
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 
-from customer.models import Customer
-from .models.translator import Translator
 from .models.supervisor import Supervisor
 
-import copy
 
 
 class CreateUserTestCase(APITestCase):
     """ Test normal creating user procedural. """
     def setUp(self):
         self.client = APIClient()
+        user = User(email='demo4Staff@test.com', password=make_password('/.,Buz123'))
+        user.save()
+        supervisor = Supervisor(user=user)
+        supervisor.save()
+        self.client.force_login(supervisor.user)
 
     def test_create_user(self):
+
         for i in range(3):
 
             payload = {
@@ -48,6 +52,8 @@ class CreateUserTestCase(APITestCase):
                 request = self.client.post(url,data,format='json')
                 self.assertEqual(request.status_code,201)
 
+        self.client.logout()
+
 
 class StaffLoginTestCase(APITestCase):
 
@@ -64,12 +70,8 @@ class StaffLoginTestCase(APITestCase):
                 'password': '/.,Buz123',
             }
             user = User.objects.get(email=data['email'])
-            print(user)
             url = reverse('staff-login')
             request =  self.client.post(url,data,format='json')
             if i == 0:
                 pass
-            print(request.data)
             self.assertEqual(request.status_code,200)
-
-            # self.assertEqual(request.user.id,user.id)
