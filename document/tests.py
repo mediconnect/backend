@@ -18,6 +18,7 @@ import uuid
 from datetime import datetime, timedelta
 
 class UploadFileTest(APITestCase):
+
     def setUp(self):
         self.client = APITestClient()
         dummy = self.dummy = CommonSetup(hospital=1,disease=1,customer=1,patient=1)
@@ -58,12 +59,12 @@ class UploadFileTest(APITestCase):
         self.res_id = res.res_id
 
 
+
     def test_create_document(self):
 
         """
         Ensure that we can create document
         """
-        self.client = APIClient()
         self.client.force_login(user=Customer.objects.get(id=self.dummy.customer[0]).user)
         url = reverse('document-list')
 
@@ -78,5 +79,5 @@ class UploadFileTest(APITestCase):
         qd.update(data)
         response = self.client.post(url,qd,format='multipart')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        print(response.data)
+        self.client.logout()
 

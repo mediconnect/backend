@@ -3,10 +3,8 @@ from django.http.request import QueryDict
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
-import json
 import uuid
 
-from .models import Hospital
 from staff.models.supervisor import Supervisor,User
 from customer.models import Customer
 
@@ -16,11 +14,12 @@ class HospitalModuleTest(APITestCase):
         """
         Ensure that we can create a hospital
         """
-        user = User(email='register1@test.com',password=make_password('/.,Buz123'))
+        user = User(email='demo4Hospital@test.com',password=make_password('/.,Buz123'))
         user.save()
         supervisor = Supervisor(user=user)
         supervisor.save()
         self.client.force_login(supervisor.user)
+
         url = reverse('hospital-list')
 
         data = {
@@ -33,12 +32,12 @@ class HospitalModuleTest(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.client.logout()
 
     def test_create_hospital_as_customer(self):
         """
         Ensure that we can create a hospital
         """
-        self.client.logout()
         user = User(email='register1@test.com',password=make_password('/.,Buz123'))
         user.save()
         customer = Customer(user=user)
@@ -57,6 +56,7 @@ class HospitalModuleTest(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.client.logout()
 
 
 
