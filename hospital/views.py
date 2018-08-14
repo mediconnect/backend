@@ -13,17 +13,16 @@ from atlas.permissions import SupPermission, CanReviewPermission
 class HospitalViewSet(ModelViewSet):
 
     serializer_class = HospitalSerializer
-    """
+
     def get_permissions(self):
         if self.action == 'create':
             # If not original file, only supervisor and translator can create
-            # permission_classes = [SupPermission]
-            permission_classes=[]
+            permission_classes = [SupPermission]
         else:
-            permission_classes = [SupPermission, IsAuthenticated]
+            permission_classes = []
     
         return [permission() for permission in permission_classes]
-    """
+
     def get_queryset(self):
 
         if self.action == 'list':

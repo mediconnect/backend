@@ -64,12 +64,10 @@ class StaffLoginTestCase(APITestCase):
                 'password': '/.,Buz123',
             }
             user = User.objects.get(email=data['email'])
-            print(user)
             url = reverse('staff-login')
             request =  self.client.post(url,data,format='json')
             if i == 0:
                 pass
-            print(request.data)
             self.assertEqual(request.status_code,200)
 
             # self.assertEqual(request.user.id,user.id)
