@@ -1,3 +1,4 @@
+from django.http.request import QueryDict
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import routers
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +12,6 @@ from atlas.permissions import SupPermission, CanReviewPermission
 
 class HospitalViewSet(ModelViewSet):
 
-    queryset = Hospital.objects.all()
     serializer_class = HospitalSerializer
 
     """
@@ -25,6 +25,19 @@ class HospitalViewSet(ModelViewSet):
     
         return [permission() for permission in permission_classes]
     """
+
+    def get_queryset(self):
+
+        if self.action == 'list':
+
+            queryset = Hospital.objects.all()
+
+            query = QueryDict(self.request.query_params.get('query')).dict()
+
+            return queryset.filter(**query)
+
+        return Hospital.objects.all()
+
 
 
 
@@ -88,5 +101,5 @@ class LikeHospitalReviewViewSet(ModelViewSet):
 
 
 router = routers.SimpleRouter()
-router.register(r'hospital', HospitalViewSet)
+router.register(r'hospital', HospitalViewSet,base_name='hospital')
 urlpatterns = router.urls
