@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'document.apps.DocumentConfig',
     'slot.apps.SlotConfig',
     'requirement.apps.RequirementConfig',
-    'rank.apps.RankConfig'
+    'rank.apps.RankConfig',
+    'search.apps.SearchConfig'
 ]
 
 MIDDLEWARE = [
@@ -102,6 +103,11 @@ DATABASES = {
         'PASSWORD': 'password',
         'HOST': 'localhost',
         'PORT': '3306',
+        'TEST': {
+            'NAME': 'test_mediconnect',
+            'CHARSET': 'utf8',
+            'COLLATION': 'utf8_general_ci',
+        }
     }
 }
 
