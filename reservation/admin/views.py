@@ -1,47 +1,62 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import uuid
-
 # rest framework
+
 from rest_framework.views import APIView
-from rest_framework.parsers import JSONParser
+from rest_framework import routers
+from rest_framework.response import Response
 
 # django
-from django.http import JsonResponse
+from django.http.request import QueryDict
 
 # other
-from atlas.guarantor import use_serializer, any_exception_throws_400
+from atlas.permissions import SupPermission
 from .serializers import ReservationUpdateSerializer,ValidationSerializer
 from reservation.models import Reservation
 
-class Update(APIView):
+class UpdateReservation(APIView):
 
-    @any_exception_throws_400
-    @use_serializer(Serializer=ReservationUpdateSerializer, pass_in='data')
-    def post(self, request,updated_fields, resid):
+    permission_classes = [SupPermission]
 
-        if self.validate(request):
-            reservation = Reservation.objects.get(res_id=resid)
-            for attr, value in updated_fields.items():
-                setattr(reservation, attr, value)
-            reservation.save()
+    def post(self, request, format=None):
 
-            return JsonResponse({'updated_fields': list(updated_fields.keys())})
-        else:
-            return JsonResponse(status=400)
+        resid = request.data['resid']
+        reservation = Reservation.objects.get(res_id=resid)
 
-    def validate(self, request,format=None):
-        user =  request.user
+        updated_fields = {k: v for k, v in request.data.items()}
 
-        errors = {}
-        data = JSONParser().parse(request)
-        data['user'] = user
-        validation_serializer = ValidationSerializer(data=data)
+        for attr, value in updated_fields.items():
+            setattr(reservation, attr, value)
+
+        reservation.save()
+
+        return Response({'updated_fields': list(updated_fields.keys())},status=200)
+
+
+class ValidateOperation(APIView):
+
+    def post(self, request,format=None):
+        payload = request.data.copy()
+        payload['user_id'] = request.user.id
+        print(payload)
+
+        validation_serializer = ValidationSerializer(data=payload)
 
         if validation_serializer.is_valid():
-            return True
+
+            return Response({'Msg':'Allowed'},status=202)
         else:
+            errors = {}
             for field, msg in validation_serializer.errors.items():
                 errors[field] = msg[-1]
-        return False
+        return Response({'Error':'Illegal Operation'},status=403)
+
+from django.urls import path
+
+urlpatterns = [path('reservation/manage/',
+                    UpdateReservation.as_view(),
+                    name='manage-reservation'),
+               path('auth/validate',
+                    ValidateOperation.as_view(),
+                    name='validate-operation'),]
