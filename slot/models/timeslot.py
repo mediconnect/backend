@@ -17,7 +17,7 @@ class TimeSlot(models.Model):
     availability = models.IntegerField()
 
     # default
-    default_availability = models.IntegerField()
+    default_availability = models.IntegerField(default=20)
 
     # need uuid 5 to ensure reproducibility, hospital id namespace to prevent clash
     @staticmethod
