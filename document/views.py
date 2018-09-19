@@ -52,10 +52,6 @@ user
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-
-            print(serializer.data)
-
-
             return Response({'msg':'Created','id':serializer.data['id']}, status=201)
 
         else:

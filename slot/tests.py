@@ -94,3 +94,31 @@ class SlotnModuleTest(APITestCase):
             list(map(lambda o: o['availability'], sorted(resp_obj, key=lambda o: o['week_start']))),
             [5, 5, 40, 20]
         )
+
+    def test_slot_reset(self):
+        hospital_ids = self.hospital_ids
+
+        payload = [
+            {
+                "hospital_id": hospital_ids[0],
+                "diseases": [
+                    {
+                        "disease_id": self.disease_id,
+                        "date_slots": [
+                            {
+                                "date": datetime(2018, 1, 1) + timedelta(days=dt * 7),
+                                "type": "change"
+                            }
+                            for dt in range(7)
+                        ]
+                    }
+                ]
+            }
+        ]
+
+        reset_slot_url = reverse("slot_reset_batch")
+        response = self.client.post(reset_slot_url, payload, format='json')
+        resp_info = json.loads(response.content)
+        self.assertEqual(resp_info['updated'], [])
+        self.assertEqual(resp_info['error'], [])
+        self.assertEqual(len(resp_info['created']), TimeSlot.objects.count())

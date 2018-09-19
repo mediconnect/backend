@@ -56,8 +56,10 @@ class CreateOrUpdateList(APIView):
                                 )
                             )
                             setattr(exist_timeslot, 'availability', quantity)
+                            setattr(exist_timeslot, 'default_availability', quantity)
                         elif change_type == Update.ADD_OPTION:
                             setattr(exist_timeslot, 'availability', exist_timeslot.availability + quantity)
+                            setattr(exist_timeslot, 'default_availability', exist_timeslot.availability + quantity)
                         exist_timeslot.save()
                         updated.append(timeslot_id)
                     except ObjectDoesNotExist:
