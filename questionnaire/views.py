@@ -1,17 +1,16 @@
 
-from atlas.guarantor import use_serializer, any_exception_throws_400
-from atlas.locator import AModule
 from atlas.permissions import SupPermission, TransPermission, ResPermission
 
-from .serializers import CompleteQuestionnaireSerializer, CreateQuestionnaireSerializer, CreateQuestionnaireLinkSerializer, \
-    QuestionnaireSerializer, RenderQuestionnaireSerializer, AnswerQuestionnaireSerializer
-from .models import Questionnaire
 from reservation.models import Reservation
 from customer.models import  Customer
-from datetime import datetime
+from .models import Questionnaire,Question, Choice
+from .serializers import QuestionnaireSerializer, \
+    QuestionSerializer, ChoiceSerializer
 
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 
@@ -20,73 +19,49 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.http import JsonResponse, HttpResponse
 from django.core.mail import send_mail
 
+from datetime import datetime
+
 signer = TimestampSigner()
-questionnaire_module = AModule()
 
 FORMAT_DIC={
     '0':'单选',
     '1':'多选',
     '2':'简答'
 }
-
-@questionnaire_module.route("create", name="questionnaire_init")
-class InitialCreate(APIView):
-
-    @any_exception_throws_400
-    @use_serializer(Serializer=CreateQuestionnaireSerializer)
-    def put(self, serializer, format=None):
-        print(**serializer.data)
-        new_questionnaire = Questionnaire.objects.create(**serializer.data)
-        return JsonResponse({'qid': new_questionnaire.id})
-
-@questionnaire_module.route(r"(?<qid>.+?)/update", name="questionnaire_update")
-class Update(APIView):
-
-    @any_exception_throws_400
-    @permission_classes((IsAuthenticated, SupPermission))
-    @use_serializer(Serializer=CompleteQuestionnaireSerializer)
-    def post(self, serializer, qid, format=None):
-        questionnaire = Questionnaire.objects.get(id=qid)
-
-        updated_fields = serializer.data
-
-        for attr, value in updated_fields.items():
-            setattr(questionnaire, attr, value)
-
-        questionnaire.save()
-        return JsonResponse({'updated_fields': list(serializer.data.keys())})
+class QuestionnaireViewSet(ModelViewSet):
+    queryset = Questionnaire.objects.all()
+    serializer_class = QuestionnaireSerializer
 
 
-@questionnaire_module.route(r"(?<qid>.+?)/info", name="questionnaire_get")
-@permission_classes((IsAuthenticated, SupPermission))
-class GetQuestionnaireInfo(APIView):
+    def get_permissions(self):
 
-    @any_exception_throws_400
-    def get(self, request, resid, format=None):
-        hospital_id = Reservation.objects.get(id = resid).hospital
-        disease_id = Reservation.objects.get(id = resid).disease
-        questionnaire = Questionnaire.objects.get(hospital = hospital_id, disease = disease_id)
+        if self.action == 'update':
 
-        return JsonResponse(QuestionnaireSerializer(questionnaire).data)
+            permission_classes = [TransPermission]
+
+        else:
+            permission_classes = [SupPermission]
+
+        return [permission() for permission in permission_classes]
+
+    def create(self,request, *args, **kwargs):
+
+        serializer = QuestionnaireSerializer(data = request.data)
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({'msg': 'Created', 'id': serializer.data['id']}, status=201)
+
+        else:
+            return Response(serializer.errors, status=400)
+
+    def update(self, request, *args, **kwargs):
+        super(QuestionnaireViewSet, self).update(request,*args, **kwargs)
+        pass
 
 
-@questionnaire_module.route(r"(?<qid>.+?)/commit", name="questionnaire_commit")
-class Commit(APIView):
-
-    @any_exception_throws_400
-    def post(self, request, qid, format=None):
-        questionnaire = Questionnaire.objects.get(id=qid)
-        questionnaire.commit_at = datetime.now()
-        questionnaire.save()
-
-        return HttpResponse(status=204)
-
-@questionnaire_module.route(r"(?<qid>.+?)/createtmplink/", name="questionnaire_createTmpLink")
 class CreateTmpLink(APIView):
 
-    @any_exception_throws_400
-    @permission_classes((IsAuthenticated, SupPermission))
-    @use_serializer(Serializer=CreateQuestionnaireLinkSerializer)
     def post(self,serializer,request,qid,resid):
         # TODO: which HTTP method to use?
         token = signer.sign(qid+resid)
@@ -103,7 +78,6 @@ class CreateTmpLink(APIView):
         )
         return JsonResponse({'fields': list(serializer.data.keys())})
 
-@questionnaire_module.route(r"?<qid>.+?/render/?<token>.+?", name = "questionnaire_render")
 class Render(APIView):
     def get(self,request,qid,resid,token,format=None):
         questionnaire = Questionnaire.objects.get(id=qid)
@@ -129,8 +103,6 @@ class Render(APIView):
                 'detail': str(e)
             }, status=401)
 
-
-@questionnaire_module.route(r"?<qid>.+?/answer", name = "questionnaire_answer")
 class Answer(APIView):
 
     @any_exception_throws_400
@@ -143,5 +115,3 @@ class Answer(APIView):
         # TODO: store answer as a File
         serializer = AnswerQuestionnaireSerializer(answer_dict=answer_dict,resid=resid)
         return serializer.data
-
-urlpatterns = questionnaire_module.urlpatterns

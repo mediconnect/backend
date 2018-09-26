@@ -47,7 +47,7 @@ class StaffLoginSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'password')
+        fields = ('email', 'password',)
 
     def __init__(self, *args, **kwargs):
         super(StaffLoginSerializer, self).__init__(*args, **kwargs)
@@ -59,19 +59,19 @@ class StaffLoginSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({field_name: ['Cannot Be Blank']})
 
         email = data['email']
-        print(data['password'], User.objects.get(email=email).password)
+        # print(data['password'], User.objects.get(email=email).password)
         if not User.objects.filter(email=email).exists() or \
                 not check_password(data['password'], User.objects.get(email=email).password):
 
-            raise serializers.ValidationError({'email': ['1Email Does Not Exist']})
+            raise serializers.ValidationError({'error': ['1Email Does Not Exist']})
 
         else:
             user = User.objects.get(email=email)
-            print(Translator.objects.filter(user=user))
+            # print(Translator.objects.filter(user=user))
             if not Translator.objects.filter(user=user).exists() and \
                     not Supervisor.objects.filter(user=user).exists():
 
-                raise serializers.ValidationError({'email': ['2Email Does Not Exist']})
+                raise serializers.ValidationError({'error': ['2Email Does Not Exist']})
 
         return data
 
