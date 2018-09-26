@@ -18,6 +18,7 @@ class SlotnModuleTest(APITestCase):
         dummy = self.dummy = CommonSetup(hospital=4, disease=1, customer=1, patient=1)
         self.hospital_ids = dummy.hospital
         self.disease_id = dummy.disease[0]
+        self.timeslot_ids =  None
 
     def test_slot_publish(self):
         hospital_ids = self.hospital_ids
@@ -44,6 +45,7 @@ class SlotnModuleTest(APITestCase):
         create_slot_url = reverse("slot_publish_batch")
         response = self.client.post(create_slot_url, payload, format='json')
         resp_info = json.loads(response.content)
+
         self.assertEqual(resp_info['updated'], [])
         self.assertEqual(resp_info['error'], [])
         self.assertEqual(len(resp_info['created']), TimeSlot.objects.count())
@@ -89,7 +91,7 @@ class SlotnModuleTest(APITestCase):
         resp = self.client.get(slot_agg_url)
         resp_obj = json.loads(resp.content)
         self.assertEqual(len(resp_obj), 4)
-
+        print(resp_obj)
         self.assertEqual(
             list(map(lambda o: o['availability'], sorted(resp_obj, key=lambda o: o['week_start']))),
             [5, 5, 40, 20]
@@ -97,6 +99,7 @@ class SlotnModuleTest(APITestCase):
 
     def test_slot_reset(self):
         hospital_ids = self.hospital_ids
+        self.test_slot_publish()
 
         payload = [
             {
@@ -107,7 +110,8 @@ class SlotnModuleTest(APITestCase):
                         "date_slots": [
                             {
                                 "date": datetime(2018, 1, 1) + timedelta(days=dt * 7),
-                                "type": "change"
+                                "type": "change",
+                                "quantity":0
                             }
                             for dt in range(7)
                         ]
@@ -118,7 +122,8 @@ class SlotnModuleTest(APITestCase):
 
         reset_slot_url = reverse("slot_reset_batch")
         response = self.client.post(reset_slot_url, payload, format='json')
+
         resp_info = json.loads(response.content)
-        self.assertEqual(resp_info['updated'], [])
-        self.assertEqual(resp_info['error'], [])
-        self.assertEqual(len(resp_info['created']), TimeSlot.objects.count())
+        for t in resp_info['updated']:
+            timeslot = TimeSlot.objects.get(timeslot_id = t)
+            self.assertEqual(timeslot.availability,  timeslot.default_availability)
