@@ -15,13 +15,14 @@ from atlas.permissions import SupPermission
 from .serializers import ReservationUpdateSerializer,ValidationSerializer
 from reservation.models import Reservation
 
+
 class UpdateReservation(APIView):
 
     permission_classes = [SupPermission]
 
     def post(self, request, format=None):
 
-        resid = request.data['resid']
+        resid = request.data['res_id']
         reservation = Reservation.objects.get(res_id=resid)
 
         updated_fields = {k: v for k, v in request.data.items()}
@@ -39,7 +40,6 @@ class ValidateOperation(APIView):
     def post(self, request,format=None):
         payload = request.data.copy()
         payload['user_id'] = request.user.id
-        print(payload)
 
         validation_serializer = ValidationSerializer(data=payload)
 
