@@ -12,7 +12,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import authenticate
 
-
 class TranslatorSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -20,7 +19,7 @@ class TranslatorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        """ Create and return a new Customer instance, given the validated data. """
+        """ Create and return a new Translator instance, given the validated data. """
         return Translator.objects.create(user=validated_data['user'],
                                          role= validated_data['role'])
 
@@ -38,7 +37,7 @@ class SupervisorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        """ Create and return a new Customer instance, given the validated data. """
+        """ Create and return a new Supervisor instance, given the validated data. """
         return Supervisor.objects.create(user=validated_data['user'])
 
 
