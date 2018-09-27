@@ -90,4 +90,4 @@ from django.urls import path
 router = routers.SimpleRouter()
 router.register(r'supervisor/user', UserViewSet)
 urlpatterns = router.urls+\
-              [path('^staff/login/', Login.as_view(), name='staff-login'),]
+              [path('staff/login/', Login.as_view(), name='staff-login'),]

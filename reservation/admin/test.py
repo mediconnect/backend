@@ -76,7 +76,7 @@ class UpdateReservationTest(APITestCase):
             'password':'/.,Buz123'
         }
         update_data = {
-            'resid':self.res_id,
+            'res_id':self.res_id,
             'status':reservation.status+1,
             'trans_status':reservation.trans_status+1,
         }
@@ -94,7 +94,7 @@ class UpdateReservationTest(APITestCase):
             'password':'/.,Buz1234'
         }
         update_data = {
-            'resid':self.res_id,
+            'res_id':self.res_id,
             'status':reservation.status+1,
             'trans_status':reservation.trans_status+1,
         }
