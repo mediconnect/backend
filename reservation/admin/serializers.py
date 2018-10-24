@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import  check_password
+from django.contrib.auth.hashers import check_password
 
 from reservation.models import Reservation
 
@@ -35,7 +35,7 @@ class ValidationSerializer(serializers.Serializer):
     required_asset = serializers.HiddenField(default = [0,])
 
     def __init__(self,*args, **kwargs):
-        update_data =  kwargs['data']['update_data']
+        update_data = kwargs['data']['update_data']
         res_id = update_data['res_id']
         res = Reservation.objects.get(res_id=res_id)
         if res.status == 0:

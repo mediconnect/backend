@@ -7,7 +7,6 @@ from django.contrib.auth.hashers import make_password
 from .models.supervisor import Supervisor
 
 
-
 class CreateUserTestCase(APITestCase):
     """ Test normal creating user procedural. """
     def setUp(self):
