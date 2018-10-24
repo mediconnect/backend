@@ -1,30 +1,26 @@
 from rest_framework import serializers
 from .models import Questionnaire, Question, Choice
 from staff.models.translator import Translator
-from atlas.creator import create_optional_field_serializer
 
 
 class QuestionnaireSerializer(serializers.ModelSerializer):
-    confirm = serializers.BooleanField(default = False)
 
     class Meta:
         model = Questionnaire
-        fields = ('__all__','confirm',)
+        fields = ('hospital','disease','category','origin','translator','is_translated')
 
     def validate(self,data):
-        hospital_id = data['hospital_id']
-        disease_id = data['disease_id']
+        hospital = data['hospital']
+        disease = data['disease']
         category = data['category']
-        translator_id = data['translator_id']
-        confirm = data['confirm']
-
-        if confirm:
-            return data
+        origin = data['origin']
+        translator = data['translator']
 
         q = Questionnaire.objects.filter(
-            hospital_id = hospital_id,
-            disease_id = disease_id,
-            category = category
+            hospital_id=hospital,
+            disease_id=disease,
+            category=category,
+            origin=origin,
         )
 
         if q.exists():
@@ -43,13 +39,12 @@ class QuestionnaireSerializer(serializers.ModelSerializer):
 
                 )
             else:
-
-                if Translator.objects.get(id = translator_id).role == 2:
+                if Translator.objects.get(user=translator.user).role == 2:
                     raise serializers.ValidationError(
                         {'Error': 'Please resign a E2C translator to this task.'}
                     )
-
-                return data
+        data['is_translated'] = False
+        return data
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -57,7 +52,6 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = '__all__'
-        read_only_fields = ('questionnaire_id',)
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -65,5 +59,4 @@ class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
         fields = '__all__'
-        read_only_fields = ('question_id',)
 

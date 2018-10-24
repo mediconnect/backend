@@ -17,6 +17,7 @@ from backend.common_test import CommonSetup
 import uuid
 from datetime import datetime, timedelta
 
+
 class UploadFileTest(APITestCase):
 
     def setUp(self):
@@ -57,8 +58,6 @@ class UploadFileTest(APITestCase):
             'timeslot': TimeSlot.objects.get(timeslot_id=self.timeslot_ids[0])})
         res.save()
         self.res_id = res.res_id
-
-
 
     def test_create_document(self):
 

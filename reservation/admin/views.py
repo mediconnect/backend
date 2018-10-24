@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 # django
 from django.http.request import QueryDict
+from django.urls import path
 
 # other
 from atlas.permissions import SupPermission
@@ -52,7 +53,6 @@ class ValidateOperation(APIView):
                 errors[field] = msg[-1]
         return Response({'Error':'Illegal Operation'},status=403)
 
-from django.urls import path
 
 urlpatterns = [path('reservation/manage/',
                     UpdateReservation.as_view(),
