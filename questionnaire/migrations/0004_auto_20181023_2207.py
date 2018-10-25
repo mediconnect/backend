@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name='question',
-            name='answer',
+            name='admin',
         ),
         migrations.RemoveField(
             model_name='questionnaire',

@@ -1,49 +1,21 @@
 from rest_framework import serializers
 
-from questionnaire.models import Questionnaire, Question, Choice
+from questionnaire.models import Questionnaire, Question, Choice, Answer
 
 
-class QuestionnaireUpdateSerializer(serializers.ModelSerializer):
-    """
-    A serializer to update status of a questionnaire
-    """
-    translator_id = serializers.UUIDField()
-    is_translated = serializers.BooleanField()
-    origin = serializers.FileField()
-    translated = serializers.FileField
+class RenderQuestionnaireSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(read_only=True)
 
     class Meta:
         model = Questionnaire
-        fields = '__all__'
-        read_only_fields = (
-            'hospital_id', 'disease_id', 'category',
-        )
+        fields = ('__all__', 'token',)
+        read_only_fields = ('__all__', 'token',)
 
 
-class QuestionUpdateSerializer(serializers.ModelSerializer):
-    """
-    A serializer to update Questions
-    """
-    format = serializers.IntegerField()
-    content = serializers.CharField(max_length=200)
+class AnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Question
+        model = Answer
         fields = '__all__'
-        read_only_fields = (
-            'questionnaire_id'
-        )
 
 
-class ChoiceUpdateSerializer(serializers.ModelSerializer):
-    """
-    A serializer to update Answer
-    """
-    content = serializers.CharField(max_length=200)
-
-    class Meta:
-        model = Choice
-        fields = '__all__'
-        read_only_fields = (
-            'question_id'
-        )

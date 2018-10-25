@@ -9,100 +9,68 @@ from rest_framework.response import Response
 
 from django.urls import path
 
-from .serializers import QuestionnaireUpdateSerializer,\
-    QuestionUpdateSerializer,\
-    ChoiceUpdateSerializer
+from .serializers import RenderQuestionnaireSerializer,\
+    AnswerSerializer
 
 from questionnaire.models import Question,\
     Questionnaire,\
-    Choice
+    Choice,\
+    Answer
 
 from atlas.permissions import TransPermission,\
     SupPermission
+from atlas.signer import signer, SignatureExpired
 
 
-class UpdateQuestionnaire(APIView):
+class RenderQuestionnaire(APIView):
 
-    permission_classes = [SupPermission, TransPermission, ]
+    def get(self,request,format=None):
+        serializer = RenderQuestionnaireSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            token = request.query_paramter['token']
+            qid = request.data['qid']
+            res_id = request.data['res_id']
+            questionnaire = Questionnaire.objects.get(id=qid)
+            concat = str(int(qid) + int(res_id)) + ":"  # restore the origin signature
+            try:
+                error = signer.unsign(concat + token, max_age=24 * 60 * 60)  # valid for at most one day
+                questions = list(Question.objects.filter(questionnaire=questionnaire).all())
+                q_dict = {}
+                for q in questions:
+                    q_dict[q.id] = (list(Choice.objects.filter(question=q)))
+                return Response(
+                    {'questionnaire': questionnaire.id,
+                     'question_dict': q_dict},
+                    status=200
+                )
 
-    def post(self, request, format=None):
-
-        questionnaire_id = request.data['questionnaire_id']
-        questionnaire = Questionnaire.objects.get(questionnaire_id=questionnaire_id)
-
-        updated_fields = {
-            k:v for k,v in request.data.itmes()
-        }
-
-        for attr, value in updated_fields.items():
-            setattr(questionnaire, attr, value)
-
-        questionnaire.save()
-
-        return Response(
-            {'update_fields':list(updated_fields.keys())},
-            status=200
-        )
-
-
-class UpdateQuestion(APIView):
-
-    permission_classes = [SupPermission, TransPermission, ]
-
-    def post(self, request, format=None):
-
-        question_id = request.data['question_id']
-        question = Question.objects.get(question_id=question_id)
-
-        updated_fields = {
-            k:v for k,v in request.data.itmes()
-        }
-
-        for attr, value in updated_fields.items():
-            setattr(question, attr, value)
-
-        question.save()
-
-        return Response(
-            {'update_fields':list(updated_fields.keys())},
-            status=200
-        )
+            except SignatureExpired as e:
+                return Response({
+                    'error': type(e).__name__,
+                    'detail': str(e)
+                }, status=403)
 
 
-class UpdateChoice(APIView):
+class SubmitAnswer(APIView):
 
-    permission_classes = [SupPermission, TransPermission, ]
-
-    def post(self, request, format=None):
-
-        choice_id = request.data['choice_id']
-        choice = Questionnaire.objects.get(choice_id=choice_id)
-
-        updated_fields = {
-            k:v for k,v in request.data.itmes()
-        }
-
-        for attr, value in updated_fields.items():
-            setattr(choice, attr, value)
-
-        choice.save()
-
-        return Response(
-            {'update_fields':list(updated_fields.keys())},
-            status=200
-        )
+    def create(self,request,format=None):
+        serializer = AnswerSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            answer = serializer.save()
+            return Response({
+                'admin':answer.id,
+                'msg':'submitted'
+            },status=201)
+        else:
+            return Response(serializer.errors, status=400)
 
 
 urlpatterns = [
-    path('questionnaire/manage/',
-         UpdateQuestionnaire.as_view(),
-         name='manage-questionnaire'),
+    path('questionnaire/render/',
+         RenderQuestionnaire.as_view(),
+         name='render-questionnaire'),
 
-    path('question/manage/',
-         UpdateQuestion.as_view(),
-         name='manage-question'),
-
-    path('choice/manage/',
-         UpdateChoice.as_view(),
-         name='manage-choice')
+    path('questionnaire/admin/',
+         SubmitAnswer.as_view(),
+         name='submit-admin'),
 ]

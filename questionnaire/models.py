@@ -1,8 +1,11 @@
 import os
+import uuid
+
 from django.db import models
 from staff.models.translator import Translator
 from hospital.models import Hospital
 from disease.models import Disease
+from reservation.models import Reservation
 
 
 def questions_path(instance, filename):
@@ -37,8 +40,9 @@ FORMAT_CHOICES = (
 
 
 class Questionnaire(models.Model):
-    hospital = models.ForeignKey(Hospital,on_delete= models.SET_NULL, null = True)
-    disease = models.ForeignKey(Disease, on_delete= models.SET_NULL, null = True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hospital = models.ForeignKey(Hospital,on_delete= models.SET_NULL, null=True)
+    disease = models.ForeignKey(Disease, on_delete= models.SET_NULL, null=True)
     category = models.CharField(max_length=200, blank=True)
     # questions = models.FileField(upload_to=questions_path, null=True)
     is_translated = models.BooleanField(default=False)
@@ -51,6 +55,7 @@ class Questionnaire(models.Model):
 
 
 class Question(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     questionnaire = models.ForeignKey(Questionnaire,on_delete=models.SET_NULL, null=True)
     format = models.IntegerField(choices=FORMAT_CHOICES)
     content = models.CharField(max_length=200)
@@ -60,9 +65,17 @@ class Question(models.Model):
 
 
 class Choice(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     question = models.ForeignKey(Question,on_delete=models.SET_NULL, null=True)
     content = models.CharField(max_length=200)
 
     class Meta:
         db_table = 'db_choice'
 
+
+class Answer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    res_id = models.ForeignKey(Reservation, on_delete=models.SET_NULL, null=True)
+    question = models.ForeignKey(Question, on_delete=models.SET_NULL, null=True)
+    choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True)
+    content = models.CharField(max_length=500, blank=True)

@@ -13,6 +13,7 @@ from rest_framework.viewsets import ModelViewSet
 
 # django
 from django.contrib.auth.models import User
+from django.urls import path
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
@@ -84,8 +85,6 @@ class Login(APIView):
             for field, msg in login_serializer.errors.items():
                 errors[field] = msg[-1]
         return Response(errors, status=400)
-
-from django.urls import path
 
 router = routers.SimpleRouter()
 router.register(r'supervisor/user', UserViewSet)
