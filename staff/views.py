@@ -29,7 +29,7 @@ class UserViewSet(ModelViewSet):
     """ View for handling creating different types of users request. """
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
-    permissions_classes = ( SupPermission,)
+    # permissions_classes = ( SupPermission,)
 
     def create(self, request, *args, **kwargs):
         # Validating our serializer from the UserRegistrationSerializer
