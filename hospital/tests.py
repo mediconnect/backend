@@ -58,8 +58,6 @@ class HospitalModuleTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.client.logout()
 
-
-
     def test_query_hospitals(self):
         self.test_create_hospital_as_supervisor()
         url = reverse('hospital-list')

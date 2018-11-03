@@ -9,6 +9,9 @@ from rest_framework.response import Response
 
 # django
 from django.http.request import QueryDict
+from django.urls import path
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 
 # other
 from atlas.permissions import SupPermission
@@ -52,11 +55,30 @@ class ValidateOperation(APIView):
                 errors[field] = msg[-1]
         return Response({'Error':'Illegal Operation'},status=403)
 
-from django.urls import path
 
-urlpatterns = [path('reservation/manage/',
+class StaffSendEmail(APIView):
+
+    def post(self,request):
+        content = request.data['content']
+        user_id =  request.data['user_id']
+        user =  User.objects.get(user_id=user_id)
+        errors = send_mail(
+            '',
+            content,
+            user.email,
+            'gabrielwry@gmail.com',
+            fail_silently=False,
+        )
+        return Response({'errors':errors},status=200)
+
+
+urlpatterns = [path('api/reservation/admin/',
                     UpdateReservation.as_view(),
                     name='manage-reservation'),
-               path('auth/validate',
+               path('api/auth/validate',
                     ValidateOperation.as_view(),
-                    name='validate-operation'),]
+                    name='validate-operation'),
+               path('api/auth/send',
+                    StaffSendEmail.as_view(),
+                    name='staff-send-email')
+               ]

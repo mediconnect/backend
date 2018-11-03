@@ -32,7 +32,7 @@ class TransPermission(BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return Translator.objects.filter(user=user ).exists()  # check if user is a supervisor
+        return Translator.objects.filter(user=user).exists()  # check if user is a supervisor
 
 
 @exception(logger)
