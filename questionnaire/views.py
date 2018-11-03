@@ -141,7 +141,7 @@ class CreateTmpLink(APIView):
         resid = request.data['res_id']
         token = signer.sign(str(qid)+resid)
         reservation = Reservation.objects.get(res_id=resid)
-        user_id = reservation.user_id
+        user_id = reservation.user_id.id
         link = get_current_site(request).domain + '/questionnaire/admin/?token=' \
                + token[(str.find(token, ':')) + 1:]
         # errors = send_mail(

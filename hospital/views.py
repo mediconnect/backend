@@ -13,14 +13,14 @@ from atlas.permissions import SupPermission, CanReviewPermission
 class HospitalViewSet(ModelViewSet):
     serializer_class = HospitalSerializer
 
-    # def get_permissions(self):
-    #     if self.action == 'create':
-    #         # If not original file, only supervisor and translator can create
-    #         permission_classes = [SupPermission]
-    #     else:
-    #         permission_classes = []
-    #
-    #     return [permission() for permission in permission_classes]
+    def get_permissions(self):
+        if self.action == 'create':
+            # If not original file, only supervisor and translator can create
+            permission_classes = [SupPermission]
+        else:
+            permission_classes = []
+
+        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
 
@@ -39,17 +39,17 @@ class HospitalReviewViewSet(ModelViewSet):
     queryset = HospitalReview.objects.all()
     serializer_class = HospitalReviewSerializer
 
-    # def get_permissions(self):
-    #     """
-    #         Permission class based on action type
-    #     """
-    #     if self.action == 'comment':
-    #         permission_classes = [CanReviewPermission]
-    #         # TODO: This is not correct
-    #     else:
-    #         permission_classes = [SupPermission]
-    #
-    #     return [permission() for permission in permission_classes]
+    def get_permissions(self):
+        """
+            Permission class based on action type
+        """
+        if self.action == 'comment':
+            permission_classes = [CanReviewPermission]
+            # TODO: This is not correct
+        else:
+            permission_classes = [SupPermission]
+
+        return [permission() for permission in permission_classes]
 
     def post(self, payload, request, **kwargs):
 
@@ -73,8 +73,8 @@ class LikeHospitalReviewViewSet(ModelViewSet):
     queryset = LikeHospital.objects.all()
     serializer_class = LikeHospitalSerializer
 
-    # def get_permissions(self):
-    #     return [IsAuthenticated,]
+    def get_permissions(self):
+        return [IsAuthenticated,]
 
     def post(self, payload, request, **kwargs):
 

@@ -125,10 +125,10 @@ class CreateQuestionnaireTest(APITestCase):
         self.test_create_questionnaire()
         self.test_create_question()
         self.test_create_choice()
-        url = reverse('send-link')
+        url = reverse('create-link')
         data = {
-            'qid':self.questionnaire_id,
-            'resid':self.res_id
+            'id':self.questionnaire_id,
+            'res_id':self.res_id
         }
         response = self.client.post(url, data)
         print(response.content)
