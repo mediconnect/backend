@@ -219,25 +219,25 @@ class UpdateChoice(APIView):
             )
 
 
-router = routers.SimpleRouter()
-router.register(r'questionnaire/admin', QuestionnaireViewSet)
-router.register(r'question/admin',QuestionViewSet)
-router.register(r'choice/admin',ChoiceViewSet)
+router = routers.DefaultRouter()
+router.register(r'/admin', QuestionnaireViewSet)
+router.register(r'/question/admin',QuestionViewSet)
+router.register(r'/choice/admin',ChoiceViewSet)
 urlpatterns = router.urls +\
     [
-        path('questionnaire/send_link/',
+        path(r'/send_link/',
           CreateTmpLink.as_view(),
           name='send-link'),
 
-        path('questionnaire/manage/',
+        path(r'/manage/',
              UpdateQuestionnaire.as_view(),
              name='manage-questionnaire'),
 
-        path('question/manage/',
+        path(r'question/manage/',
              UpdateQuestion.as_view(),
              name='manage-question'),
 
-        path('choice/manage/',
+        path(r'choice/manage/',
              UpdateChoice.as_view(),
              name='manage-choice')
     ]

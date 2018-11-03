@@ -26,5 +26,5 @@ class PatientViewSet(ModelViewSet):
 
 
 router = routers.SimpleRouter()
-router.register(r'patient', PatientViewSet)
+router.register(r'', PatientViewSet,base_name='patient')
 urlpatterns = router.urls

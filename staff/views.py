@@ -86,7 +86,8 @@ class Login(APIView):
                 errors[field] = msg[-1]
         return Response(errors, status=400)
 
-router = routers.SimpleRouter()
-router.register(r'supervisor/user', UserViewSet)
+
+router = routers.DefaultRouter()
+router.register(r'user', UserViewSet)
 urlpatterns = router.urls+\
-              [path('staff/login/', Login.as_view(), name='staff-login'),]
+              [path('login/', Login.as_view(), name='staff-login'),]

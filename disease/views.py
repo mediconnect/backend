@@ -34,7 +34,7 @@ class DiseaseViewSet(ModelViewSet):
 
 
 
-router = routers.SimpleRouter()
+router = routers.DefaultRouter()
 
-router.register(r'disease', DiseaseViewSet,base_name='disease')
+router.register(r'', DiseaseViewSet,base_name='disease')
 urlpatterns = router.urls

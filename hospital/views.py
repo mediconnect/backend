@@ -11,7 +11,6 @@ from atlas.permissions import SupPermission, CanReviewPermission
 
 
 class HospitalViewSet(ModelViewSet):
-
     serializer_class = HospitalSerializer
 
     def get_permissions(self):
@@ -96,6 +95,6 @@ class LikeHospitalReviewViewSet(ModelViewSet):
             return Response(serializer.data)
 
 
-router = routers.SimpleRouter()
-router.register(r'hospital', HospitalViewSet,base_name='hospital')
+router = routers.DefaultRouter()
+router.register('', HospitalViewSet,base_name='hospital')
 urlpatterns = router.urls

@@ -57,6 +57,7 @@ user
         else:
             return Response(serializer.errors, status=400)
 
-router = routers.SimpleRouter()
-router.register(r'document/', FileUploadViewSet)
+
+router = routers.DefaultRouter()
+router.register(r'', FileUploadViewSet,base_name='document')
 urlpatterns = router.urls

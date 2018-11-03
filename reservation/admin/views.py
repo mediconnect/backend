@@ -54,9 +54,9 @@ class ValidateOperation(APIView):
         return Response({'Error':'Illegal Operation'},status=403)
 
 
-urlpatterns = [path('reservation/manage/',
+urlpatterns = [path('api/reservation/admin/',
                     UpdateReservation.as_view(),
                     name='manage-reservation'),
-               path('auth/validate',
+               path('api/auth/validate',
                     ValidateOperation.as_view(),
                     name='validate-operation'),]
