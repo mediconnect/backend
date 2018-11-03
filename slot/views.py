@@ -15,7 +15,7 @@ from .serializers import DateNumTupleSerializer as Update
 from .models.timeslot import TimeSlot
 from .models.slotbind import SlotBind
 from .utils import date_to_weeknum, weeknum_to_date
-
+from .admin.views import reset_urlpatterns
 slot_module = AModule()
 
 
@@ -133,4 +133,4 @@ class GetSlotAvailability(APIView):
         ], safe=False)
 
 
-urlpatterns = slot_module.urlpatterns
+urlpatterns = slot_module.urlpatterns + reset_urlpatterns

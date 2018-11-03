@@ -11,7 +11,6 @@ from atlas.permissions import SupPermission, CanReviewPermission
 
 
 class HospitalViewSet(ModelViewSet):
-
     serializer_class = HospitalSerializer
 
     def get_permissions(self):
@@ -20,7 +19,7 @@ class HospitalViewSet(ModelViewSet):
             permission_classes = [SupPermission]
         else:
             permission_classes = []
-    
+
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
@@ -34,7 +33,6 @@ class HospitalViewSet(ModelViewSet):
             return queryset.filter(**query)
 
         return Hospital.objects.all()
-
 
 
 class HospitalReviewViewSet(ModelViewSet):
@@ -53,7 +51,7 @@ class HospitalReviewViewSet(ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
-    def comment(self, payload, request, **kwargs):
+    def post(self, payload, request, **kwargs):
 
         if request.method == 'POST':
             serializer = self.serializer_class(**payload)
@@ -78,7 +76,7 @@ class LikeHospitalReviewViewSet(ModelViewSet):
     def get_permissions(self):
         return [IsAuthenticated,]
 
-    def mark(self, payload, request, **kwargs):
+    def post(self, payload, request, **kwargs):
 
         if request.method == 'POST':
             serializer = self.serializer_class(**payload)
@@ -96,6 +94,6 @@ class LikeHospitalReviewViewSet(ModelViewSet):
             return Response(serializer.data)
 
 
-router = routers.SimpleRouter()
-router.register(r'hospital', HospitalViewSet,base_name='hospital')
+router = routers.DefaultRouter()
+router.register('', HospitalViewSet,base_name='hospital')
 urlpatterns = router.urls

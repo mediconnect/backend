@@ -71,5 +71,6 @@ class CreateOrUpdateList(APIView):
             'error': errored
         })
 
-urlpatterns = slot_module.urlpatterns
+
+reset_urlpatterns = slot_module.urlpatterns
 

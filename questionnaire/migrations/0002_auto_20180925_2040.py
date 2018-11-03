@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('format', models.IntegerField(choices=[('Multiple Choice', 1), ('All that Matched', 2), ('Short Answer', 3)])),
                 ('content', models.CharField(max_length=200)),
-                ('answer', models.CharField(max_length=500)),
+                ('admin', models.CharField(max_length=500)),
             ],
             options={
                 'db_table': 'db_question',
