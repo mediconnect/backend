@@ -21,14 +21,14 @@ from .serializers import TranslatorSerializer, SupervisorSerializer,\
 from customer.serializers import CustomerRegistrationSerializer
 
 from atlas.permissions import SupPermission
-from user.serializers import UserRegistrationSerializer
+from user.serializers import UserRegistrationSerializer,UserSerializer
 
 
 class UserViewSet(ModelViewSet):
 
     """ View for handling creating different types of users request. """
     queryset = User.objects.all()
-    serializer_class = UserRegistrationSerializer
+    serializer_class = UserSerializer
     # permissions_classes = ( SupPermission,)
 
     def create(self, request, *args, **kwargs):

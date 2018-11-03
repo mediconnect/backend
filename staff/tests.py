@@ -44,11 +44,13 @@ class CreateUserTestCase(APITestCase):
                     'role':0
                 }
                 request = self.client.post(url, data, format='json')
+                print(request.content)
                 self.assertEqual(request.status_code, 200)
             else:
                 url = reverse('user-list')
                 data = payload
                 request = self.client.post(url,data,format='json')
+                print(request.content)
                 self.assertEqual(request.status_code,201)
 
         self.client.logout()
@@ -70,7 +72,7 @@ class StaffLoginTestCase(APITestCase):
             }
             user = User.objects.get(email=data['email'])
             url = reverse('staff-login')
-            request =  self.client.post(url,data,format='json')
+            request = self.client.post(url,data,format='json')
             if i == 0:
                 pass
             self.assertEqual(request.status_code,200)
