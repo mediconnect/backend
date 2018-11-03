@@ -11,14 +11,14 @@ from atlas.permissions import SupPermission, TransPermission, ResPermission, IsO
 class DiseaseViewSet(ModelViewSet):
     serializer_class = DiseaseSerializer
 
-    def get_permissions(self):
-        if self.action == 'create':
-            # If not original file, only supervisor and translator can create
-            permission_classes = [SupPermission]
-        else:
-            permission_classes = []
-
-        return [permission() for permission in permission_classes]
+    # def get_permissions(self):
+    #     if self.action == 'create':
+    #         # If not original file, only supervisor and translator can create
+    #         permission_classes = [SupPermission]
+    #     else:
+    #         permission_classes = []
+    #
+    #     return [permission() for permission in permission_classes]
 
     def get_queryset(self):
 
@@ -31,8 +31,6 @@ class DiseaseViewSet(ModelViewSet):
             return queryset.filter(**query)
 
         return Disease.objects.all()
-
-
 
 router = routers.DefaultRouter()
 

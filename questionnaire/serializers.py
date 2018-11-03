@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Questionnaire, Question, Choice
+from .models import Questionnaire, Question, Choice, Answer
 from staff.models.translator import Translator
 
 
@@ -61,6 +61,13 @@ class ChoiceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AnswerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Answer
+        fields = ('res_id','questionnaire_id','content','origin','translator','is_translated')
+
+
 class QuestionnaireUpdateSerializer(serializers.ModelSerializer):
     """
     A serializer to update status of a questionnaire
@@ -95,7 +102,7 @@ class QuestionUpdateSerializer(serializers.ModelSerializer):
 
 class ChoiceUpdateSerializer(serializers.ModelSerializer):
     """
-    A serializer to update Answer
+    A serializer to update Choice
     """
     content = serializers.CharField(max_length=200)
 
@@ -104,4 +111,15 @@ class ChoiceUpdateSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = (
             'question_id'
+        )
+
+
+class AnswerUpdateSerializer(serializers.ModelSerializer):
+    content = serializers.CharField(max_length=500)
+
+    class Meta:
+        model = Answer
+        fields = '__all__'
+        read_only_fields = (
+            'res_id','questionnaire_id'
         )
