@@ -13,8 +13,8 @@ urlpatterns = [
     path('api/document/',include('document.views')),
     path('api/hospital/',include('hospital.views')),
     path('api/disease/',include('disease.views')),
-    path('api/patient/',include('patient.views')),
-    path('',include('reservation.admin.views')),
+    path('api/',include('patient.views')),
+    path('api/',include('reservation.admin.views')),
     path('api/search/', include('search.urls')),
     path('api/questionnaire/',include('questionnaire.views'))
 ]

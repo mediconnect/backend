@@ -9,14 +9,20 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('document', '0001_initial'),
         ('reservation', '0001_initial'),
+        ('questionnaire', '0001_initial'),
+        ('staff', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='document',
-            name='resid',
+            model_name='answer',
+            name='reservation',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='reservation.Reservation'),
+        ),
+        migrations.AddField(
+            model_name='answer',
+            name='translator',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='staff.Translator'),
         ),
     ]

@@ -1,4 +1,4 @@
-from rest_framework.parsers import FormParser, MultiPartParser, FileUploadParser
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import routers
 from rest_framework.response import Response
@@ -6,7 +6,6 @@ from rest_framework.response import Response
 
 from document.models import Document
 from document.serializer import DocumentSerializer
-import uuid
 import os.path
 
 
@@ -36,22 +35,16 @@ user
     """
 
     def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data.update({'owner': request.user.id,
+                     'upload_at': datetime.datetime.now(),
+                     'extensions': os.path.splitext(request.data['file'].name)[1]})
 
-        mutable = request.POST._mutable
-        request.POST._mutable = True
-
-        request.data.update({'id' : uuid.uuid4(),
-                             'owner':request.user.id,
-                             'upload_at':datetime.datetime.now(),
-                             'extensions':os.path.splitext(request.data['file'].name)[1]})
-
-        request.POST._mutable = mutable
-
-        serializer = DocumentSerializer(data=request.data,)
+        serializer = DocumentSerializer(data=data,)
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response({'msg':'Created','id':serializer.data['id']}, status=201)
+            return Response({'msg':'Created','id':serializer.data['id']}, status=200)
 
         else:
             return Response(serializer.errors, status=400)

@@ -9,10 +9,6 @@ class ReservationUpdateSerializer(serializers.ModelSerializer):
     """
     A serializer to update certain fields of a reservation.
     """
-    translator_id = serializers.UUIDField()
-    status = serializers.IntegerField()
-    trans_status = serializers.IntegerField()
-    note = serializers.CharField()
 
     class Meta:
         model = Reservation

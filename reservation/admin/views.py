@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # rest framework
-
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework import routers
 from rest_framework.response import Response
 
 # django
 from django.http.request import QueryDict
-from django.urls import path
+from django.urls import path, re_path
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 
@@ -19,23 +19,14 @@ from .serializers import ReservationUpdateSerializer,ValidationSerializer
 from reservation.models import Reservation
 
 
-class UpdateReservation(APIView):
+class ReservationAdminViewset(ModelViewSet):
 
-    permission_classes = [SupPermission]
+    queryset = Reservation.objects.all()
+    serializer_class =  ReservationUpdateSerializer
+    # permission_classes = [SupPermission]
 
-    def post(self, request, format=None):
-
-        resid = request.data['res_id']
-        reservation = Reservation.objects.get(res_id=resid)
-
-        updated_fields = {k: v for k, v in request.data.items()}
-
-        for attr, value in updated_fields.items():
-            setattr(reservation, attr, value)
-
-        reservation.save()
-
-        return Response({'updated_fields': list(updated_fields.keys())},status=200)
+    def create(self, request, *args, **kwargs):
+        pass # not allowed
 
 
 class ValidateOperation(APIView):
@@ -72,13 +63,17 @@ class StaffSendEmail(APIView):
         return Response({'errors':errors},status=200)
 
 
-urlpatterns = [path('api/reservation/admin/',
-                    UpdateReservation.as_view(),
-                    name='manage-reservation'),
-               path('api/auth/validate',
+router = routers.SimpleRouter()
+
+router.register(r'reservation/admin',
+                ReservationAdminViewset,
+                base_name='reservation/admin')
+urlpatterns = router.urls +\
+              [
+               path('auth/validate',
                     ValidateOperation.as_view(),
                     name='validate-operation'),
-               path('api/auth/send',
+               path('auth/send',
                     StaffSendEmail.as_view(),
                     name='staff-send-email')
                ]
