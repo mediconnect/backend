@@ -13,7 +13,7 @@ E2C_TRANSLATED = 3
 
 
 def res_directory_path(instance, filename):
-    return 'res_{0}/{1}'.format(instance.resid.res_id,http.urlquote(filename))
+    return 'res_{0}/{1}'.format(instance.res,http.urlquote(filename))
 
 
 class Document(models.Model):

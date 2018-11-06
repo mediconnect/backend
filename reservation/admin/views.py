@@ -4,25 +4,28 @@
 # rest framework
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
-from rest_framework import routers
+from rest_framework import routers, filters
 from rest_framework.response import Response
 
 # django
-from django.http.request import QueryDict
-from django.urls import path, re_path
+from django.urls import path
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from  django_filters.rest_framework import DjangoFilterBackend
 
 # other
 from atlas.permissions import SupPermission
-from .serializers import ReservationUpdateSerializer,ValidationSerializer
+from .serializers import ReservationAdminSerializer, ValidationSerializer
 from reservation.models import Reservation
 
 
 class ReservationAdminViewset(ModelViewSet):
 
     queryset = Reservation.objects.all()
-    serializer_class =  ReservationUpdateSerializer
+    serializer_class = ReservationAdminSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend,)
+    filter_fields = '__all__'
+    ordering_fields = '__all__'
     # permission_classes = [SupPermission]
 
     def create(self, request, *args, **kwargs):
@@ -32,14 +35,14 @@ class ReservationAdminViewset(ModelViewSet):
 class ValidateOperation(APIView):
 
     def post(self, request,format=None):
-        payload = request.data.copy()
-        payload['user_id'] = request.user.id
+        data = request.data.copy()
+        data['user_id'] = request.user.id
 
-        validation_serializer = ValidationSerializer(data=payload)
+        validation_serializer = ValidationSerializer(data=data)
 
         if validation_serializer.is_valid():
 
-            return Response({'Msg':'Allowed'},status=202)
+            return Response({'Msg':'Allowed'},status=200)
         else:
             errors = {}
             for field, msg in validation_serializer.errors.items():
@@ -51,8 +54,8 @@ class StaffSendEmail(APIView):
 
     def post(self,request):
         content = request.data['content']
-        user_id =  request.data['user_id']
-        user =  User.objects.get(user_id=user_id)
+        user_id = request.data['user_id']
+        user = User.objects.get(user_id=user_id)
         errors = send_mail(
             '',
             content,

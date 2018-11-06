@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import uuid
-
 # rest framework
 
-from rest_framework import routers
+from rest_framework import routers, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -14,6 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from django.contrib.auth.models import User
 from django.urls import path, re_path
 from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
@@ -31,6 +29,9 @@ class UserViewSet(ModelViewSet):
     """ View for handling creating different types of users request. """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend,)
+    filter_fields = '__all__'
+    ordering_fields = '__all__'
     # permissions_classes = ( SupPermission,)
 
     def create(self, request, *args, **kwargs):
@@ -92,7 +93,8 @@ class Login(APIView):
 class Assignments(APIView):
     """View for handling get staff assignments"""
 
-    def get(self, request, *args, user_id, **kwargs):
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs['user_id']
         query = {k:v for k,v in request.query_params.items() if v}
         if Supervisor.objects.filter(user_id=user_id).exists():
             assignments = Reservation.objects.exclude(status=7).exclude(trans_status=12)
@@ -108,7 +110,8 @@ class Assignments(APIView):
 class Summary(APIView):
     """View for handling staff summarize website"""
 
-    def get(self, request, *args, user_id, **kwargs):
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs['user_id']
         summary ={
             'num_reservation':None,
             'num_reservation_done':None,
