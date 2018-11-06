@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import json
 import uuid
 
+
 class CreateQuestionnaireTest(APITestCase):
 
     def setUp(self):
@@ -90,7 +91,7 @@ class CreateQuestionnaireTest(APITestCase):
         """
         self.test_create_questionnaire()
         self.client.force_login(user=Translator.objects.get(user=self.dummy.translator).user)
-        url = reverse('question-list')
+        url = reverse('question-list',kwargs={'questionnaire_id':self.questionnaire_id})
         data = {
             'questionnaire_id': self.questionnaire_id,
             'format': 1,
@@ -108,28 +109,38 @@ class CreateQuestionnaireTest(APITestCase):
         self.test_create_questionnaire()
         self.test_create_question()
         self.client.force_login(user=Translator.objects.get(user=self.dummy.translator).user)
-        url = reverse('choice-list')
+        url = reverse('choice-list',kwargs={'question_id':self.question_id,
+                                            'questionnaire_id':self.questionnaire_id})
         data = {
             'question_id': self.question_id,
 
             'content': 'Who is your daddy?'
         }
         response = self.client.post(url, data)
-        print(response.content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_send_tmp_link(self):
+    def test_create_tmp_link(self):
         """
-        Test send temporary link to customer
+        Test create temporary link to customer
         """
         self.test_create_questionnaire()
         self.test_create_question()
         self.test_create_choice()
-        url = reverse('create-link')
+        url = reverse('create-link',kwargs={'questionnaire_id':self.questionnaire_id})
         data = {
             'id':self.questionnaire_id,
             'res_id':self.res_id
         }
         response = self.client.post(url, data)
-        print(response.content)
+        self.token = json.loads(response.content)['token']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_render(self):
+        self.test_create_questionnaire()
+        self.test_create_question()
+        self.test_create_choice()
+        self.test_create_tmp_link()
+        url = reverse('render-questionnaire',kwargs={'token':self.token})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code,status.HTTP_200_OK)
+        self.assertEqual(json.loads(response.content)['questionnaire_id'],self.questionnaire_id)

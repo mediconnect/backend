@@ -5,14 +5,10 @@ from django.contrib.auth.hashers import check_password
 from reservation.models import Reservation
 
 
-class ReservationUpdateSerializer(serializers.ModelSerializer):
+class ReservationAdminSerializer(serializers.ModelSerializer):
     """
     A serializer to update certain fields of a reservation.
     """
-    translator_id = serializers.UUIDField()
-    status = serializers.IntegerField()
-    trans_status = serializers.IntegerField()
-    note = serializers.CharField()
 
     class Meta:
         model = Reservation

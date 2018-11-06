@@ -1,74 +1,47 @@
 from django.urls import reverse
 from django.http.request import QueryDict
-from django.contrib.auth.hashers import make_password
+
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase, URLPatternsTestCase
+from rest_framework.test import  APITestCase
+
 import uuid
 
-from staff.models.supervisor import Supervisor,User
-from customer.models import Customer
+from atlas.comparer import APITestClient
+from backend.common_test import CommonSetup
+
 
 class HospitalModuleTest(APITestCase):
+    def setUp(self):
+        self.client = APITestClient()
+        dummy = self.dummy = CommonSetup(hospital=1,disease=1,customer=1,patient=1)
+        self.hospital_id = dummy.hospital[0]
+        self.disease_id = dummy.disease[0]
+        self.supervisor = dummy.supervisor
 
-    def test_create_hospital_as_supervisor(self):
-        """
-        Ensure that we can create a hospital
-        """
-        user = User(email='demo4Hospital@test.com',password=make_password('/.,Buz123'))
-        user.save()
-        supervisor = Supervisor(user=user)
-        supervisor.save()
-        self.client.force_login(supervisor.user)
-
+    def test_create_hospital(self):
         url = reverse('hospital-list')
-
-        data = {
-            'id': uuid.uuid4(),
-            'name': 'demo_hospital',
-            'email':'demo@demo.com',
-            'overall_rank':1,
-            'average_score':0.0,
-            'review_number':10
-        }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        for i in range(3):
+            data = {
+                'id': uuid.uuid4(),
+                'name': 'demo_hospital{}'.format(i),
+                'email':'demo{}@demo.com'.format(i),
+                'overall_rank':i,
+                'average_score':0.0,
+                'review_number':10
+            }
+            response = self.client.post(url, data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.client.logout()
 
-    # def test_create_hospital_as_customer(self):
-    #     """
-    #     Ensure that we can create a hospital
-    #     """
-    #     user = User(email='register1@test.com',password=make_password('/.,Buz123'))
-    #     user.save()
-    #     customer = Customer(user=user)
-    #     customer.save()
-    #     self.client.force_login(customer.user)
-    #
-    #     url = reverse('hospital-list')
-    #
-    #     data = {
-    #         'id': uuid.uuid4(),
-    #         'name': 'demo_hospital',
-    #         'email':'demo@demo.com',
-    #         'overall_rank':1,
-    #         'average_score':0.0,
-    #         'review_number':10
-    #     }
-    #     response = self.client.post(url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    #     self.client.logout()
-
     def test_query_hospitals(self):
-        self.test_create_hospital_as_supervisor()
-        url = reverse('hospital-list')
+        self.test_create_hospital()
+        url = reverse('hospital-list',)
         data = {
-            'query' : 'name=demo_hospital&email=demo@demo.com'
+            'name':'demo_hospital1',
+            'order_by':'name&-email',
         }
-        query = QueryDict(data['query']).dict()
         response = self.client.get(url,data,format='json')
 
         self.assertEqual(response.status_code,status.HTTP_200_OK)
-        for each in response.data:
-            for k,v in query.items():
-                self.assertEqual(each.get(k),v)
+        print(response.data)
 

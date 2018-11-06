@@ -95,12 +95,12 @@ def customer_setup(num: int = 1) -> List:
 
 
 def patient_setup(customers: List, num: int = 1) -> List:
-    url = reverse('patient-list')
 
     for i in range(num):
         for c_id in customers:
             customer=Customer.objects.get(id=c_id)
             client.force_login(user=customer.user)
+            url = reverse('patient-list',args=(customer.id,))
             data = {
                 'first_name':"Patient %d" % i,
                 'last_name':"of User %d" % i,

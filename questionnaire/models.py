@@ -75,8 +75,8 @@ class Choice(models.Model):
 
 class Answer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    res_id = models.ForeignKey(Reservation, on_delete=models.SET_NULL, null=True)
-    questionnaire_id = models.ForeignKey(Questionnaire, on_delete=models.SET_NULL, null=True)
+    reservation = models.ForeignKey(Reservation, on_delete=models.SET_NULL, null=True)
+    questionnaire= models.ForeignKey(Questionnaire, on_delete=models.SET_NULL, null=True)
     content = models.CharField(max_length=500, blank=True)
     is_translated = models.BooleanField(default=False)
     translator = models.ForeignKey(Translator, on_delete=models.SET_NULL, null=True)

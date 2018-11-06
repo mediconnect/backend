@@ -2,27 +2,21 @@ from atlas.signer import signer
 from atlas.permissions import SupPermission, TransPermission, ResPermission
 
 from reservation.models import Reservation
-from customer.models import Customer
 from .models import Questionnaire,Question, Choice, Answer
 from .serializers import QuestionnaireSerializer, \
-    QuestionSerializer, ChoiceSerializer,AnswerSerializer,\
-    QuestionnaireUpdateSerializer, QuestionUpdateSerializer, ChoiceUpdateSerializer, AnswerUpdateSerializer
+    QuestionSerializer, ChoiceSerializer,AnswerSerializer
 
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.parsers import JSONParser
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
+from rest_framework import routers, filters
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-
 from django.contrib.sites.shortcuts import get_current_site
-from django.http import JsonResponse, HttpResponse
-from django.urls import path
-from rest_framework import routers
-
-from datetime import datetime
-
+from django.urls import path, re_path
+from django_filters.rest_framework import DjangoFilterBackend
 
 FORMAT_DIC={
     '0':'单选',
@@ -32,18 +26,21 @@ FORMAT_DIC={
 
 
 class QuestionnaireViewSet(ModelViewSet):
-    queryset = Questionnaire.objects.all()
     serializer_class = QuestionnaireSerializer
+    queryset = Questionnaire.objects.all()
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
+    filter_fields = ('hospital__name','disease__name','category','is_translated','translator__user')
+    ordering_fields = '__all__'
 
-    def get_permissions(self):
-
-        if self.action == 'update':
-            self.permission_classes = [SupPermission,TransPermission]
-
-        else:
-            self.permission_classes = [SupPermission]
-
-        return [permission() for permission in self.permission_classes]
+    # def get_permissions(self):
+    #
+    #     if self.action == 'update':
+    #         self.permission_classes = [SupPermission,TransPermission]
+    #
+    #     else:
+    #         self.permission_classes = [SupPermission]
+    #
+    #     return [permission() for permission in self.permission_classes]
 
     def create(self, request, *args, **kwargs):
         serializer = QuestionnaireSerializer(data=request.data)
@@ -57,8 +54,15 @@ class QuestionnaireViewSet(ModelViewSet):
 
 
 class QuestionViewSet(ModelViewSet):
-    queryset = Question.objects.all()
+
     serializer_class = QuestionSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
+    filter_fields = '__all__'
+    ordering_fields = '__all__'
+
+    def get_queryset(self):
+        questionnaire_id = self.kwargs['questionnaire_id']
+        return Question.objects.filter(questionnaire_id=questionnaire_id)
 
     # def get_permissions(self):
     #
@@ -70,9 +74,10 @@ class QuestionViewSet(ModelViewSet):
     #
     #     return [permission() for permission in self.permission_classes]
 
-    def create(self, request, *args, **kwargs):
-
-        serializer = QuestionSerializer(data=request.data)
+    def create(self, request,*args, questionnaire_id=None, **kwargs):
+        data = request.data.copy()
+        data['questionnaire'] = questionnaire_id
+        serializer = QuestionSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
             q = serializer.save()
@@ -83,8 +88,14 @@ class QuestionViewSet(ModelViewSet):
 
 
 class ChoiceViewSet(ModelViewSet):
-    queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend,)
+    filter_fields = '__all__'
+    ordering_fields = '__all__'
+
+    def get_queryset(self):
+        question_id = self.kwargs['question_id']
+        return Choice.objects.filter(question_id=question_id)
 
     # def get_permissions(self):
     #
@@ -96,9 +107,10 @@ class ChoiceViewSet(ModelViewSet):
     #
     #     return [permission() for permission in self.permission_classes]
 
-    def create(self, request, *args, **kwargs):
-
-        serializer = ChoiceSerializer(data=request.data)
+    def create(self, request, *args, question_id=None,**kwargs):
+        data = request.data.copy()
+        data['question'] = question_id
+        serializer = ChoiceSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -109,9 +121,14 @@ class ChoiceViewSet(ModelViewSet):
 
 
 class AnswerViewSet(ModelViewSet):
-    queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
+    filter_fields = ('reservation','questionnaire','is_translated','translator',)
+    ordering_fields = '__all__'
 
+    def get_queryset(self):
+        res_id = self.kwargs['res_id']
+        return Answer.objects.filter(reservation_id=res_id)
     # def get_permissions(self):
     #
     #     if self.action == 'update':
@@ -122,9 +139,10 @@ class AnswerViewSet(ModelViewSet):
     #
     #     return [permission() for permission in self.permission_classes]
 
-    def create(self, request, *args, **kwargs):
-
-        serializer = AnswerSerializer(data=request.data)
+    def create(self, request,*args, res_id=None, **kwargs, ):
+        data = request.data.copy()
+        data['res_id'] = res_id
+        serializer = AnswerSerializer(data=data)
 
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -134,16 +152,39 @@ class AnswerViewSet(ModelViewSet):
             return Response(serializer.errors, status=400)
 
 
+class ListAllQuestions(ListAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
+    filter_fields = '__all__'
+    ordering_fields = '__all__'
+
+
+class ListAllChoices(ListAPIView):
+    queryset = Choice.objects.all()
+    serializer_class = ChoiceSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
+    filter_fields = '__all__'
+    ordering_fields = '__all__'
+
+
+class ListAllAnswers(ListAPIView):
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
+    filter_fields = ('reservation','questionnaire','is_translated','translator',)
+    ordering_fields = '__all__'
+
+
 class CreateTmpLink(APIView):
 
-    def post(self,request):
-        qid = request.data['id']
-        resid = request.data['res_id']
-        token = signer.sign(str(qid)+resid)
-        reservation = Reservation.objects.get(res_id=resid)
+    def post(self,request,*args,questionnaire_id,**kwargs):
+        qid = questionnaire_id
+        res_id = request.data['res_id']
+        token = signer.sign(str(qid))
+        reservation = Reservation.objects.get(res_id=res_id)
         user_id = reservation.user_id.id
-        link = get_current_site(request).domain + '/questionnaire/admin/?token=' \
-               + token[(str.find(token, ':')) + 1:]
+        link = get_current_site(request).domain + '/api/questionnaire/' + token[(str.find(token, ':')) + 1:]
         # errors = send_mail(
         #     '问卷',
         #     '请点击此链接填写医院问卷' + link,
@@ -151,135 +192,59 @@ class CreateTmpLink(APIView):
         #     'gabrielwry@gmail.com',
         #     fail_silently=False,
         # )
-        return Response({'content':link,'user_id':user_id},status=200)
+        return Response({'link':link,
+                         'token':token,
+                         'user_id':user_id,
+                         'questionnaire_id':qid,
+                         'res_id':res_id},status=200)
 
 
-class UpdateQuestionnaire(APIView):
+class RenderTmpLink(APIView):
 
-    # permission_classes = [SupPermission, TransPermission, ]
-
-    def put(self, request, format=None):
-
-        serializer = QuestionnaireUpdateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            questionnaire_id = request.data['questionnaire_id']
-            questionnaire = Questionnaire.objects.get(questionnaire_id=questionnaire_id)
-
-            updated_fields = {
-                k:v for k,v in request.data.itmes()
-            }
-
-            for attr, value in updated_fields.items():
-                setattr(questionnaire, attr, value)
-
-            questionnaire.save()
-
-            return Response(
-                {'update_fields':list(updated_fields.keys())},
-                status=200
-            )
-
-
-class UpdateQuestion(APIView):
-
-    # permission_classes = [SupPermission, TransPermission, ]
-
-    def put(self, request, format=None):
-        serializer = QuestionUpdateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            question_id = request.data['question_id']
-            question = Question.objects.get(question_id=question_id)
-
-            updated_fields = {
-                k:v for k,v in request.data.itmes()
-            }
-
-            for attr, value in updated_fields.items():
-                setattr(question, attr, value)
-
-            question.save()
-
-            return Response(
-                {'update_fields':list(updated_fields.keys())},
-                status=200
-            )
-
-
-class UpdateChoice(APIView):
-
-    permission_classes = [SupPermission, TransPermission, ]
-
-    def put(self, request, format=None):
-        serializer = ChoiceUpdateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            choice_id = request.data['choice_id']
-            choice = Choice.objects.get(choice_id=choice_id)
-
-            updated_fields = {
-                k:v for k,v in request.data.itmes()
-            }
-
-            for attr, value in updated_fields.items():
-                setattr(choice, attr, value)
-
-            choice.save()
-
-            return Response(
-                {'update_fields':list(updated_fields.keys())},
-                status=200
-            )
-
-
-class UpdateAnswer(APIView):
-
-    # permission_classes = [SupPermission, TransPermission, ]
-
-    def put(self, request, format=None):
-        serializer = AnswerUpdateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            answer_id = request.data['answer_id']
-            answer = Answer.objects.get(answer_id=answer_id)
-
-            updated_fields = {
-                k:v for k,v in request.data.itmes()
-            }
-
-            for attr, value in updated_fields.items():
-                setattr(answer, attr, value)
-
-            answer.save()
-
-            return Response(
-                {'update_fields':list(updated_fields.keys())},
-                status=200
-            )
+    def get(self,request,*args, token, **kwargs):
+        try:
+            qid = signer.unsign(token,max_age=24)
+            return Response({'questionnaire_id':qid},status=200)
+        except Exception as e:
+            return Response({'error':str(e)},status=400)
 
 
 router = routers.DefaultRouter()
-router.register(r'admin', QuestionnaireViewSet)
-router.register(r'question/admin',QuestionViewSet)
-router.register(r'choice/admin',ChoiceViewSet)
-router.register(r'answer/admin',AnswerViewSet)
+router.register(r'admin',
+                QuestionnaireViewSet,
+                base_name='questionnaire')
+
+router.register(r'admin/(?P<questionnaire_id>[^/.]+)/question',
+                QuestionViewSet,
+                base_name='question')
+
+router.register(r'admin/(?P<questionnaire_id>[^/.]+)/question/(?P<question_id>[^/.]+)/choice',
+                ChoiceViewSet,
+                base_name='choice')
+
+router.register(r'reservation/(?P<res_id>[^/.]+)/answer',
+                AnswerViewSet,
+                base_name='answer')
 
 urlpatterns = router.urls +\
     [
-        path(r'manage/createlink/',
-          CreateTmpLink.as_view(),
-          name='create-link'),
+        re_path(r'admin/(?P<questionnaire_id>[^/.]+)/create_link',
+                CreateTmpLink.as_view(),
+                name='create-link'),
 
-        path(r'manage/',
-             UpdateQuestionnaire.as_view(),
-             name='manage-questionnaire'),
+        path('questions',
+             ListAllQuestions.as_view(),
+             name='list-all-questions'),
 
-        path(r'question/manage/',
-             UpdateQuestion.as_view(),
-             name='manage-question'),
+        path('choices',
+             ListAllChoices.as_view(),
+             name='list-all-choices'),
 
-        path(r'choice/manage/',
-             UpdateChoice.as_view(),
-             name='manage-choice'),
+        path('answers',
+             ListAllAnswers.as_view(),
+             name='list-all-answers'),
 
-        path(r'answer/',
-             UpdateAnswer.as_view(),
-             name='manage-answer')
+        re_path(r'(?P<token>[^/.]+)',
+                RenderTmpLink.as_view(),
+                name='render-questionnaire')
     ]

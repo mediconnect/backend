@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from ..models.timeslot import TimeSlot
-from hospital.models import Hospital
-from disease.models import Disease
-from ..serializers import DiseaseDateSlotSerializer
 
 
-class PeriodicallySlotUpdateSerializer(serializers.Serializer):
+class SlotAdminSerializer(serializers.ModelSerializer):
 
-    hospital_id = serializers.PrimaryKeyRelatedField(queryset=Hospital.objects.all())
-    diseases = DiseaseDateSlotSerializer(many=True)
+    class Meta:
+        model = TimeSlot
+        fields = '__all__'
+        read_only_fields = ('time_slot_id','hospital','disease',)

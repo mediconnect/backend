@@ -15,6 +15,7 @@ from atlas.comparer import APITestCaseExtend, APITestClient
 from backend.common_test import CommonSetup
 
 import uuid
+import json
 from datetime import datetime, timedelta
 
 
@@ -25,6 +26,7 @@ class UploadFileTest(APITestCase):
         dummy = self.dummy = CommonSetup(hospital=1,disease=1,customer=1,patient=1)
         self.hospital_id = dummy.hospital[0]
         self.disease_id = dummy.disease[0]
+        self.supervisor = dummy.supervisor
 
         payload = [
             {
@@ -70,13 +72,13 @@ class UploadFileTest(APITestCase):
         data = {
             'file':open('Murphy.txt'),
             'type':'2',
-            'resid':self.res_id,
-            'obsolete':True,
+            'res':self.res_id,
+            'obsolete': True,
             'description':'Sth',
         }
-        qd = QueryDict('',mutable=True)
-        qd.update(data)
-        response = self.client.post(url,qd,format='multipart')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post(url,data,format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        document = Document.objects.get(id=json.loads(response.content)['id'])
+        self.assertEqual(document.res_id,self.res_id)
         self.client.logout()
 
