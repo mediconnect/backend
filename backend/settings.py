@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+from . import constant
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,9 +101,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mediconnect',
         'USER': 'root',
-        'PASSWORD': 'password',
+        'PASSWORD': constant.DB_PASSWORD,
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': constant.DB_PORT,
         'TEST': {
             'NAME': 'test_mediconnect',
             'CHARSET': 'utf8',
