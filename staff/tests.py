@@ -59,7 +59,8 @@ class CreateUserTestCase(APITestCase):
 class StaffLoginTestCase(APITestCase):
 
     def setUp(self):
-        creat_user =  CreateUserTestCase()
+
+        creat_user = CreateUserTestCase()
         creat_user.setUp()
         creat_user.test_create_user()
         self.client = APIClient()
