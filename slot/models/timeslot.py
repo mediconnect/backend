@@ -16,6 +16,9 @@ class TimeSlot(models.Model):
     slot_weeknum = models.IntegerField()
     availability = models.IntegerField()
 
+    # default
+    default_availability = models.IntegerField(default=20)
+
     # need uuid 5 to ensure reproducibility, hospital id namespace to prevent clash
     @staticmethod
     def createID(hospital_id, disease_id, slot_year, slot_weeknum):

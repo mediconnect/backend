@@ -1,34 +1,38 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import uuid
-
 # rest framework
 
-from rest_framework import routers
+from rest_framework import routers, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-
 # django
 from django.contrib.auth.models import User
+from django.urls import path, re_path
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
     StaffLoginSerializer
 from customer.serializers import CustomerRegistrationSerializer
-
 from atlas.permissions import SupPermission
-from user.serializers import UserRegistrationSerializer
+from user.serializers import UserRegistrationSerializer,UserSerializer
+from .models.supervisor import Supervisor
+from .models.translator import Translator
+from reservation.models import Reservation
 
 
 class UserViewSet(ModelViewSet):
 
     """ View for handling creating different types of users request. """
     queryset = User.objects.all()
-    serializer_class = UserRegistrationSerializer
-    permissions_classes = ( SupPermission,)
+    serializer_class = UserSerializer
+    filter_backends = (filters.OrderingFilter,DjangoFilterBackend,)
+    filter_fields = '__all__'
+    ordering_fields = '__all__'
+    # permissions_classes = ( SupPermission,)
 
     def create(self, request, *args, **kwargs):
         # Validating our serializer from the UserRegistrationSerializer
@@ -85,9 +89,62 @@ class Login(APIView):
                 errors[field] = msg[-1]
         return Response(errors, status=400)
 
-from django.urls import path
 
-router = routers.SimpleRouter()
-router.register(r'supervisor/user', UserViewSet)
+class Assignments(APIView):
+    """View for handling get staff assignments"""
+
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs['user_id']
+        query = {k:v for k,v in request.query_params.items() if v}
+        if Supervisor.objects.filter(user_id=user_id).exists():
+            assignments = Reservation.objects.exclude(status=7).exclude(trans_status=12)
+        elif Translator.objects.filter(user_id=user_id).exists():
+            assignments = Reservation.objects.filter(translator_id__user=user_id).exclude(trans_status=12)
+        else:
+            return Response({'errors':'Not found'},status=400)
+        if query != {}:
+            assignments.filter(**query)
+        return Response({'assignments':assignments},status=200)
+
+
+class Summary(APIView):
+    """View for handling staff summarize website"""
+
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs['user_id']
+        summary ={
+            'num_reservation':None,
+            'num_reservation_done':None,
+            'num_reservation_translating':None,
+            'num_reservation_approving':None
+        }
+        if Supervisor.objects.filter(user_id=user_id).exists():
+            summary['num_reservation'] = len(Reservation.objects.all())
+            summary['num_reservation_done'] = len(Reservation.objects.filter(status=7))
+            summary['num_reservation_translating'] = len(Reservation.objects.exclude(trans_status=5)
+                                                         .exclude(trans_status=12)
+                                                         .exclude(status=0)
+                                                         .exclude(status=7))
+            summary['num_reservation_approving'] = len(Reservation.objects.get(Q(trans_status=2)&Q(trans_status=8)))
+        elif Translator.objects.filter(user_id=user_id).exists():
+            assignments = Reservation.objects.filter(translator_id__user=user_id)
+            translator = Translator.objects.get(user_id=user_id)
+            summary['num_reservation'] = len(assignments)
+            summary['num_reservation_done'] = len(assignments.filter(trans_stauts=5 if translator.role == 1 else 11))
+            summary['num_reservation_translating'] = \
+                len(assignments.filter(trans_stauts=1 if translator.role == 1 else 7))
+            summary['num_reservation_approving'] = len(assignments.filter(trans_status=2 if translator.role==1 else 8))
+        else:
+            return Response({'errors':'Not Found'},status=400)
+        return Response(summary,status=200)
+
+
+router = routers.DefaultRouter()
+router.register(r'user', UserViewSet)
 urlpatterns = router.urls+\
-              [path('^staff/login/', Login.as_view(), name='staff-login'),]
+              [
+                  path('login', Login.as_view(), name='staff-login'),
+                  re_path(r'assignment/(?P<user_id>[^/.]+)/$', Assignments.as_view(), name='staff-assignments'),
+                  re_path(r'summary/(?P<user_id>[^/.]+)', Summary.as_view(), name='staff-summary'),
+
+               ]

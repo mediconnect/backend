@@ -1,33 +1,35 @@
 from django.urls import reverse
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
+from atlas.comparer import APITestClient
 
 from rest_framework import status
-from rest_framework.test import  APITestCase
+from rest_framework.test import APITestCase
 import uuid
 
 from .models import Disease
-from staff.models.supervisor import Supervisor
+from backend.common_test import CommonSetup
+
 
 class DiseaseModuleTest(APITestCase):
+
+    def setUp(self):
+        self.client = APITestClient()
+        self.dummy = CommonSetup(hospital=1,
+                                 disease=1,
+                                 customer=1,
+                                 patient=1)
+        self.supervisor = self.dummy.supervisor
 
     def test_create_disease(self):
         """
         Ensure that we can create a hospital
         """
-        user = User(email='demo4Disease@test.com', password=make_password('/.,Buz123'))
-        user.save()
-        supervisor = Supervisor(user=user)
-        supervisor.save()
-        self.client.force_login(supervisor.user)
+        self.client.force_login(self.supervisor)
 
         url = reverse('disease-list')
         data = {
-            'id': uuid.uuid4(),
             'name': 'demo_disease',
-            'keyword':'demo demo'
+            'keyword': 'demo demo'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        disease = Disease.objects.get(name='demo_disease')
         self.client.logout()

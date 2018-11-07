@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Hospital, HospitalReview,LikeHospital
-from atlas.creator import create_optional_field_serializer
 
 
 class HospitalSerializer(serializers.ModelSerializer):

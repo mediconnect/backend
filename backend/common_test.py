@@ -14,18 +14,33 @@ from disease.models import Disease
 from customer.models import Customer
 from patient.models import Patient
 from staff.models.supervisor import Supervisor
+from staff.models.translator import Translator
 
 client = APIClient()
 
 
 def supervisor_setup():
 
-    user = User(email='sup4Common@test.com', password=make_password('/.,Buz123'))
+    user = User(email='sup4Common@test.com',
+                username='sup4Common',
+                password=make_password('/.,Buz123'))
     user.save()
     supervisor = Supervisor(user=user)
     supervisor.save()
 
     return supervisor.user
+
+
+def translator_setup():
+
+    user = User(email='trans4Common@test.com',
+                username='trans4Common',
+                password=make_password('/.,Buz123'))
+    user.save()
+    translator = Translator(user=user,role=1)
+    translator.save()
+
+    return translator.user
 
 
 def hospital_setup(num: int = 1) -> List:
@@ -80,12 +95,12 @@ def customer_setup(num: int = 1) -> List:
 
 
 def patient_setup(customers: List, num: int = 1) -> List:
-    url = reverse('patient-list')
 
     for i in range(num):
         for c_id in customers:
             customer=Customer.objects.get(id=c_id)
             client.force_login(user=customer.user)
+            url = reverse('patient-list',args=(customer.id,))
             data = {
                 'first_name':"Patient %d" % i,
                 'last_name':"of User %d" % i,
@@ -123,6 +138,7 @@ class CommonSetup:
             kwargs_map[kwspace][kwkey] = arg
 
         self.supervisor = supervisor_setup()
+        self.translator =  translator_setup()
         client.force_login(self.supervisor)
         self.hospital = hospital_setup(hospital)
         self.disease = disease_setup(disease)

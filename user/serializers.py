@@ -14,6 +14,12 @@ from django.contrib.auth import authenticate
 from .validators import validate_email_format,validate_password_complexity,validate_confirmed_password
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email','first_name','last_name','password')
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """
         Use this as a base user type registration serializer, all other user type serializer can inherit this
