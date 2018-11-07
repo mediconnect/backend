@@ -154,5 +154,5 @@ class UserLoginSerializer(serializers.ModelSerializer):
         return data
 
     def login(self):
-        user = authenticate(username=self.data['email'])
-        return user
+        authenticate(username=self.data['email'])
+        return User.objects.get(username=self.data['email'])

@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from .serializers import CustomerRegistrationSerializer, UserRegistrationSerializer, UserLoginSerializer, \
     CustomerProfileSerializer
+from .models import Customer
 from django.http import JsonResponse
 
 
@@ -27,7 +28,11 @@ class Register(APIView):
             customer_info_valid = customer_serializer.is_valid()
             if customer_info_valid:
                 customer_serializer.save()
-                return JsonResponse({"msg": "success"}, status=200)
+                return JsonResponse({
+                    "msg": "success",
+                    "user_id": user.id,
+                    "customer_id": Customer.objects.get(user=user).id
+                }, status=200)
 
         # Gather error from serializer. Because the strange design of Django
         # serializer, we need call is_valid before accessing its attributes.
@@ -69,8 +74,12 @@ class Login(APIView):
 
         user_serializer = UserLoginSerializer(data=data)
         if user_serializer.is_valid():
-            user_serializer.login()
-            return JsonResponse({"msg": "success"}, status=200)
+            user = user_serializer.login()
+            return JsonResponse({
+                    "msg": "success",
+                    "user_id": user.id,
+                    "customer_id": Customer.objects.get(user=user).id
+                }, status=200)
 
         # Gather error from serializer. Because the strange design of Django
         # serializer, we need call is_valid before accessing its attributes.
