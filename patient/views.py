@@ -24,13 +24,21 @@ class PatientViewSet(ModelViewSet):
         customer_id = self.kwargs['customer_id']
         data = request.data.copy()
         data['customer'] = customer_id
-        serializer = PatientSerializer(data=request.data)
+        # print(data)
+        serializer = PatientSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(status=201)
         else:
             return Response(serializer.errors,status=400)
         # super(PatientViewSet, self).create(request,*args, **kwargs)
+
+    def list(self,request,*args,**kwargs):
+        user = self.request.user
+        if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
+            return Response({'error':'Not Allowed'},status=403)
+        else:
+            return super(PatientViewSet, self).list(request,*args,**kwargs)
 
 
 class ListAllPatients(ListAPIView):
