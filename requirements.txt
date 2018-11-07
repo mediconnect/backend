@@ -6,4 +6,4 @@ pytz==2018.3
 mysqlclient==1.3.12
 pygments==2.2.0
 django-guardian==1.4.9
-pystreamer=0.0.2
+pystreamer==0.0.2
