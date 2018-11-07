@@ -11,7 +11,7 @@ class SlotAdminViewSet(ModelViewSet):
     queryset = TimeSlot.objects.all()
     serializer_class = SlotAdminSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter)
-    search_fields = ('@hospital__name', '@disease__name')
+    search_fields = ('=hospital__name', '=disease__name')
     ordering_fields = '__all__'
 
     def create(self, request, *args, **kwargs):

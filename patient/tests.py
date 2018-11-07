@@ -55,5 +55,5 @@ class PatientTestCase(APITestCase):
         self.client.logout()
         self.client.force_login(self.hacker.user)
         url = reverse('patient-list',kwargs={'customer_id':self.customer.id})
-        response =  self.client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code,403)
