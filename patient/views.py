@@ -38,6 +38,7 @@ class PatientViewSet(ModelViewSet):
         else:
             return super(PatientViewSet, self).list(request,*args,**kwargs)
 
+
 class ListAllPatients(ListAPIView):
     serializer_class = PatientSerializer
     queryset = Patient.objects.all()
