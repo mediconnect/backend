@@ -1,2 +1,3 @@
 DB_PASSWORD = "password"
 DB_PORT = "3306"
+ALLOWED_HOSTS = []
