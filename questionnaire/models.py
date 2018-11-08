@@ -10,24 +10,24 @@ from reservation.models import Reservation
 
 def questions_path(instance, filename):
     return 'hospital_{0}/disease_{1}/{2}_question{3}'\
-        .format(instance.hospital.id,
-                instance.disease.id,
+        .format(instance.hospital.name,
+                instance.disease.name,
                 os.path.split(filename)[0],
                 os.path.split(filename)[1])
 
 
 def origin_questions_path(instance, filename):
     return 'hospital_{0}/disease_{1}/{2}_origin{3}'\
-        .format(instance.hospital.id,
-                instance.disease.id,
+        .format(instance.hospital.name,
+                instance.disease.name,
                 os.path.split(filename)[0],
                 os.path.split(filename)[1])
 
 
 def translated_questions_path(instance, filename):
     return 'hospital_{0}/disease_{1}/{2}_translated{3}'\
-        .format(instance.hospital.id,
-                instance.disease.id,
+        .format(instance.hospital.name,
+                instance.disease.name,
                 os.path.split(filename)[0],
                 os.path.split(filename)[1])
 

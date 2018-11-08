@@ -17,5 +17,6 @@ urlpatterns = [
     path('api/',include('patient.views')),
     path('api/',include('reservation.admin.views')),
     path('api/search/', include('search.urls')),
-    path('api/questionnaire/',include('questionnaire.views'))
+    path('api/questionnaire/',include('questionnaire.views')),
+    path('api/info/',include('info.views'))
 ]

@@ -7,7 +7,6 @@ class HospitalSerializer(serializers.ModelSerializer):
         model = Hospital
         fields = '__all__'
 
-
 class HospitalReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = HospitalReview

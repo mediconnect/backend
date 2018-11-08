@@ -21,6 +21,7 @@ class HospitalViewSet(ModelViewSet):
     search_fields = ('=name','=specialty')
     ordering_fields = ('name', 'overall_rank')
     ordering = ('name','overall_rank',)
+
     # def get_permissions(self):
     #     if self.action == 'create':
     #         # If not original file, only supervisor and translator can create

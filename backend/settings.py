@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'slot.apps.SlotConfig',
     'requirement.apps.RequirementConfig',
     'rank.apps.RankConfig',
-    'search.apps.SearchConfig'
+    'search.apps.SearchConfig',
+    'info.apps.InfoConfig',
 ]
 
 MIDDLEWARE = [
