@@ -86,6 +86,13 @@ class QuestionViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=400)
 
+    def list(self, request, *args, questionnaire_id=None,**kwargs):
+        if self.queryset:
+            return Response(self.queryset.filter(questionnaire_id=questionnaire_id),
+                            status=200)
+        else:
+            return Response({'errors':'Not Found'},status=400)
+
 
 class ChoiceViewSet(ModelViewSet):
     serializer_class = ChoiceSerializer
@@ -119,6 +126,12 @@ class ChoiceViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=400)
 
+    def list(self, request, *args, question_id=None,**kwargs):
+        if self.queryset:
+            return Response(self.queryset.filter(question_id=question_id))
+        else:
+            return Response({'errors':'Not Found'},status=400)
+
 
 class AnswerViewSet(ModelViewSet):
     serializer_class = AnswerSerializer
@@ -151,29 +164,48 @@ class AnswerViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=400)
 
+    def list(self, request, *args, res_id=None,**kwargs):
+        if self.queryset:
+            return Response(self.queryset.filter(reservation=res_id),
+                            status=200)
+        else:
+            return Response({'errors':'Not Found'},status=400)
+
 
 class ListAllQuestions(ListAPIView):
-    queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
-    filter_fields = '__all__'
-    ordering_fields = '__all__'
+
+    def get_queryset(self):
+        query = {k:v for k,v in self.request.query_params.items() if v}
+        if query != {}:
+            queryset = Question.objects.filter(**query)
+        else:
+            queryset = Question.objects.all()
+        return queryset
 
 
 class ListAllChoices(ListAPIView):
-    queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
-    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
-    filter_fields = '__all__'
-    ordering_fields = '__all__'
+
+    def get_queryset(self):
+        query = {k:v for k,v in self.request.query_params.items() if v}
+        if query != {}:
+            queryset = Choice.objects.filter(**query)
+        else:
+            queryset = Choice.objects.all()
+        return queryset
 
 
 class ListAllAnswers(ListAPIView):
-    queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
-    filter_fields = ('reservation','questionnaire','is_translated','translator',)
-    ordering_fields = '__all__'
+
+    def get_queryset(self):
+        query = {k:v for k,v in self.request.query_params.items() if v}
+        if query != {}:
+            queryset = Answer.objects.filter(**query)
+        else:
+            queryset = Answer.objects.all()
+        return queryset
 
 
 class CreateTmpLink(APIView):
