@@ -21,8 +21,7 @@ class Hospital(models.Model):
     website = models.URLField(blank=True)
     introduction = models.TextField(default='intro')
     specialty = models.TextField(default='specialty')
-    feedback_time = models.IntegerField(default=1)
-    average_score = models.DecimalField(max_digits=4,decimal_places=3,null=True)
+    average_score = models.FloatField(default=0.0)
     review_number = models.IntegerField(default=0, null=False)
 
     class Meta:
@@ -33,6 +32,7 @@ class HospitalReview(models.Model):
 
     hospital = models.ForeignKey(Hospital,on_delete=models.SET_NULL,null=True)
     customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
+    disease = models.ForeignKey(Disease, on_delete=models.SET_NULL,null=True)
     review = models.CharField(null=True,max_length=200)
     score = models.IntegerField(null=True)
 

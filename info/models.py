@@ -15,6 +15,7 @@ class Info(models.Model):
     deposit = models.IntegerField(default=10000)
     full_price = models.IntegerField(default=100000)
     description = models.TextField(default='information')
+    feedback_time = models.IntegerField(default=1)
 
     class Meta:
         db_table = 'db_info'

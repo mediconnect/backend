@@ -49,62 +49,20 @@ class HospitalViewSet(ModelViewSet):
 
 
 # class HospitalReviewViewSet(ModelViewSet):
-#     queryset = HospitalReview.objects.all()
 #     serializer_class = HospitalReviewSerializer
+#     filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
+#     filter_fields = ('hospital','disease','customer')
+#     ordering_fields = ('score',)
+#     ordering = ('score',)
 #
-#     def get_permissions(self):
-#         """
-#             Permission class based on action type
-#         """
-#         if self.action == 'comment':
-#             permission_classes = [CanReviewPermission]
-#             # TODO: This is not correct
-#         else:
-#             permission_classes = [SupPermission]
+#     def get_queryset(self):
+#         hospital_id = self.kwargs['hospital_id']
+#         disease_id = self.kwargs['disease_id']
+#         return HospitalReviewSerializer.objects.filter(hospital_id=hospital_id,disease_id=disease_id)
 #
-#         return [permission() for permission in permission_classes]
-#
-#     def post(self, payload, request, **kwargs):
-#
-#         if request.method == 'POST':
-#             serializer = self.serializer_class(**payload)
-#
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response(serializer.data,)
-#             else:
-#                 return Response(serializer.errors,)
-#
-#         # Return GET by default
-#         else:
-#             serializer = self.serializer_class(instance=self.queryset, many=True)
-#
-#             return Response(serializer.data)
-
-
-# class LikeHospitalReviewViewSet(ModelViewSet):
-#     queryset = LikeHospital.objects.all()
-#     serializer_class = LikeHospitalSerializer
-#
-#     def get_permissions(self):
-#         return [IsAuthenticated,]
-#
-#     def post(self, payload, request, **kwargs):
-#
-#         if request.method == 'POST':
-#             serializer = self.serializer_class(**payload)
-#
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response(serializer.data, )
-#             else:
-#                 return Response(serializer.errors, )
-#
-#         # Return GET by default
-#         else:
-#             serializer = self.serializer_class(instance=self.queryset, many=True)
-#
-#             return Response(serializer.data)
+#     def create(self, request, *args, **kwargs):
+#         customer_id=self.kwargs['customer_id']
+#         hospital_id
 
 
 router = routers.DefaultRouter()
