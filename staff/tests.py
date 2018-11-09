@@ -21,7 +21,7 @@ class CreateUserTestCase(APITestCase):
 
         for i in range(3):
 
-            payload = {
+            data = {
                 'email': 'register%d@test.com' %i,
                 'password': '/.,Buz123',
                 'confirmed_password': '/.,Buz123',
@@ -29,29 +29,9 @@ class CreateUserTestCase(APITestCase):
                 'last_name': 'create%d' %i,
                 'role': i
             }
-
-            if payload['role'] == 0:
-                # Customer creation requires two additional fields
-                url = reverse('customer_register')
-                payload['password_confirmation'] = payload['confirmed_password']
-                customer = {
-                    'tel': 'N/A',
-                    'address': 'N/A'
-                }
-                data = {
-                    'auth': payload,
-                    'customer': customer,
-                    'role':0
-                }
-                request = self.client.post(url, data, format='json')
-                print(request.content)
-                self.assertEqual(request.status_code, 200)
-            else:
-                url = reverse('user-list')
-                data = payload
-                request = self.client.post(url,data,format='json')
-                print(request.content)
-                self.assertEqual(request.status_code,201)
+            url = reverse('staff-user-list')
+            request = self.client.post(url,data,format='json')
+            self.assertEqual(request.status_code,201)
 
         self.client.logout()
 
@@ -60,9 +40,9 @@ class StaffLoginTestCase(APITestCase):
 
     def setUp(self):
 
-        creat_user = CreateUserTestCase()
-        creat_user.setUp()
-        creat_user.test_create_user()
+        create_user = CreateUserTestCase()
+        create_user.setUp()
+        create_user.test_create_user()
         self.client = APIClient()
 
     def testLogin(self):
@@ -74,6 +54,5 @@ class StaffLoginTestCase(APITestCase):
             user = User.objects.get(email=data['email'])
             url = reverse('staff-login')
             request = self.client.post(url,data,format='json')
-            if i == 0:
-                pass
+            print(request.content)
             self.assertEqual(request.status_code,200)

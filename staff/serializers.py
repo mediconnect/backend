@@ -12,11 +12,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import authenticate
 
+
 class TranslatorSerializer(serializers.ModelSerializer):
+    role = serializers.IntegerField
 
     class Meta:
         model = Translator
-        fields = '__all__'
+        fields = ('user','role',)
 
     def create(self, validated_data):
         """ Create and return a new Translator instance, given the validated data. """
@@ -25,20 +27,29 @@ class TranslatorSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """ Validate all fields are filled. """
-        if data['role'] is None:
+        # print(data)
+        if 'role' not in data:
             raise serializers.ValidationError({'role': ['Cannot Be Blank']})
         return data
 
 
 class SupervisorSerializer(serializers.ModelSerializer):
+    role = serializers.IntegerField()
 
     class Meta:
         model = Supervisor
-        fields = '__all__'
+        fields = ('user','role')
 
     def create(self, validated_data):
         """ Create and return a new Supervisor instance, given the validated data. """
         return Supervisor.objects.create(user=validated_data['user'])
+
+    def validate(self, data):
+        print(data)
+        """ Validate all fields are filled. """
+        if 'role' not in data:
+            raise serializers.ValidationError({'role': ['Cannot Be Blank']})
+        return data
 
 
 class StaffLoginSerializer(serializers.ModelSerializer):
@@ -75,5 +86,5 @@ class StaffLoginSerializer(serializers.ModelSerializer):
         return data
 
     def login(self):
-        user = authenticate(username=self.data['email'])
-        return user
+        authenticate(username=self.data['email'])
+        return User.objects.get(username=self.data['email'])
