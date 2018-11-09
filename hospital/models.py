@@ -35,6 +35,7 @@ class HospitalReview(models.Model):
     disease = models.ForeignKey(Disease, on_delete=models.SET_NULL,null=True)
     review = models.CharField(null=True,max_length=200)
     score = models.IntegerField(null=True)
+    review_time = models.DateField(auto_now_add=True,null=True)
 
     class Meta:
         db_table = 'db_hospital_review'
