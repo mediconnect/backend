@@ -12,8 +12,8 @@ class Info(models.Model):
     disease = models.ForeignKey(Disease, on_delete=models.SET_NULL, null=True,
                                 related_name='disease_price')
     rank = models.IntegerField(default=0)
-    deposit = models.FloatField(default=10000)
-    full_price = models.FloatField(default=100000)
+    deposit = models.IntegerField(default=10000)
+    full_price = models.IntegerField(default=100000)
     description = models.TextField(default='information')
     feedback_time = models.IntegerField(default=1)
 
