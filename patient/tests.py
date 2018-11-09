@@ -32,9 +32,9 @@ class PatientTestCase(APITestCase):
                 'last_name':'patient%d'%i,
                 'first_name_pinyin':'pin%d'%i,
                 'last_name_pinyin':'yin%d'%i,
-                'gender':'M',
+                'gender':0,
                 'birthdate':datetime.date.today(),
-                'relationship':'self',
+                'relationship':0,
                 'passport':'12345'
             }
             url = reverse('patient-list',kwargs={'customer_id':self.customer.id})

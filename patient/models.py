@@ -27,17 +27,17 @@ class Patient(models.Model):
     last_name = models.CharField(max_length=50)
     first_name_pinyin = models.CharField(max_length=50)
     last_name_pinyin = models.CharField(max_length=50)
-    gender = models.CharField(max_length=1, choices=(
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Other')
-    ),default='Male')
+    gender = models.IntegerField(choices=(
+        (0, 'M'),
+        (1, 'F'),
+        (2, 'O')
+    ),default=0)
     birthdate = models.DateField()
-    relationship = models.CharField(max_length=50, choices=(
-        ('SELF','Self'),
-        ('RELATIVE','Relative'),
-        ('OTHER','Other')
-    ),default='Self')
+    relationship = models.IntegerField(choices=(
+        (0, 'SELF'),
+        (1, 'RELATIVE'),
+        (2, 'OTHER')
+    ),default=0)
     passport = models.CharField(max_length=20)
 
     # optional fields

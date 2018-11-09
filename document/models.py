@@ -24,7 +24,12 @@ class Document(models.Model):
     upload_at = models.DateTimeField(auto_now_add=True)
     file = models.FileField(upload_to=res_directory_path)
     obsolete = models.BooleanField(default=False)
-    type = models.IntegerField(default=ORIGINAL)
+    type = models.IntegerField(default=ORIGINAL,choices=(
+        (0,'ORIGINAL'),
+        (1,'C2E_TRANSLATED'),
+        (2,'FEEDBACK'),
+        (3,'E2C_TRANSLATED')
+    ))
 
     # reserved, unused fields
     extensions = models.TextField(max_length=100, blank=True, null=True)
