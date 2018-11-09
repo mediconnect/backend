@@ -71,7 +71,7 @@ class UploadFileTest(APITestCase):
 
         data = {
             'file':open('Murphy.txt'),
-            'type':'2',
+            'type':2,
             'res':self.res_id,
             'obsolete': True,
             'description':'Sth',

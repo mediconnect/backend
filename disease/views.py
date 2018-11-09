@@ -14,8 +14,8 @@ class DiseaseViewSet(ModelViewSet):
     serializer_class = DiseaseSerializer
     queryset = Disease.objects.all()
     filter_backends = (filters.SearchFilter,DjangoFilterBackend,)
-    filter_fields = ('name','keyword')
-    search_fields = ('=name','=keyword')
+    filter_fields = ('name','keyword','categories','types')
+    search_fields = ('=name','=keyword','=categories','=types')
     # def get_permissions(self):
     #     if self.action == 'create':
     #         # If not original file, only supervisor and translator can create

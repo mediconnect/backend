@@ -104,9 +104,9 @@ def patient_setup(customers: List, num: int = 1) -> List:
                 'last_name':"of User %d" % i,
                 'first_name_pinyin':"Patient %d" % i,
                 'last_name_pinyin':"of User %d" % c_id,
-                'gender':'MF'[i % 2],
+                'gender':i%2,
                 'birthdate':datetime.now().date(),
-                'relationship':"ship",
+                'relationship':i%3,
                 'passport':"port",
                 'notes':"something",
 

@@ -12,12 +12,14 @@ from django.contrib.auth import authenticate
 
 # other
 from .validators import validate_email_format,validate_password_complexity,validate_confirmed_password
+import uuid
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
-        fields = ('email','first_name','last_name','password')
+        fields = '__all__'
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -30,18 +32,27 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=User.objects.all()),validate_email_format]
     )
     password = serializers.CharField(
-        required = True,
-        validators = [validate_password_complexity,validate_confirmed_password]
+        required=True,
+        validators=[validate_password_complexity,validate_confirmed_password]
     )
     confirmed_password = serializers.CharField()
 
-    first_name = serializers.CharField(required= True)
-    last_name = serializers.CharField(required= True)
-    role = serializers.IntegerField()
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+    role = serializers.ChoiceField(
+        (
+            (0,'Customer'),
+            (1,'Supervisor'),
+            (2,'Translator C2E'),
+            (3,'Translator E2C'),
+         ),default=0,required=False
+    )
+    tel = serializers.CharField(default='Not set',required=False)
+    address = serializers.CharField(default='Not set',required=False)
 
     class Meta:
         model = User
-        fields = ('email', 'password','confirmed_password', 'first_name', 'last_name','role')
+        fields = ('email', 'password','confirmed_password', 'first_name', 'last_name','role','tel','address')
 
     def create(self, validated_data):
         """ Create and return a new Customer instance, given the validated data. """
@@ -50,7 +61,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             password=make_password(validated_data['password']),
             first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
+            last_name=validated_data['last_name'],
         )
 
     def validate(self, data):
@@ -63,15 +74,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         return data
 
+
 class UserLoginSerializer(serializers.ModelSerializer):
     """ Serializer for login user. """
 
     class Meta:
         model = User
         fields = ('email', 'password')
-
-    def __init__(self, *args, **kwargs):
-        super(UserLoginSerializer, self).__init__(*args, **kwargs)
 
     def validate(self, data):
         """ Validate email exists in the DB. """

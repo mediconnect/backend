@@ -1,6 +1,7 @@
 from django.db import models
 from customer.models import Customer
 
+
 class Patient(models.Model):
     """
         Patient model = Patient information storage
@@ -26,13 +27,19 @@ class Patient(models.Model):
     last_name = models.CharField(max_length=50)
     first_name_pinyin = models.CharField(max_length=50)
     last_name_pinyin = models.CharField(max_length=50)
-    gender = models.CharField(max_length=1, choices=(
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Other')
-    ))
+    gender = models.IntegerField(choices=(
+        (0, 'M'),
+        (1, 'F'),
+        (2, 'O')
+    ),default=0)
+    # gender = models.IntegerField()
     birthdate = models.DateField()
-    relationship = models.CharField(max_length=50)
+    # relationship = models.IntegerField(choices=(
+    #     (0, 'SELF'),
+    #     (1, 'RELATIVE'),
+    #     (2, 'OTHER')
+    # ),default=0)
+    relationship = models.IntegerField()
     passport = models.CharField(max_length=20)
 
     # optional fields
