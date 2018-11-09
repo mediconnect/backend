@@ -24,7 +24,7 @@ class SearchTestCase(TestCase):
         response = client.get(self.url + '?query=精')
         data = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(data['disease']['id'], Disease.objects.get(name='精神').id)
+        self.assertEqual(data['disease']['id'], str(Disease.objects.get(name='精神').id))
 
         disease_data = [
             {'name': '一', 'keyword': '一，一一，一一一'},
@@ -68,4 +68,4 @@ class SearchTestCase(TestCase):
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.content)
             self.assertEqual(len(data['hospitals']), 3)
-            self.assertEqual(data['disease']['id'], Disease.objects.get(name=disease_entry['name']).id)
+            self.assertEqual(data['disease']['id'], str(Disease.objects.get(name=disease_entry['name']).id))
