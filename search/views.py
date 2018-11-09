@@ -39,9 +39,11 @@ class Search(APIView):
             }, status=200)
 
         hospitals = [r.hospital for r in Rank.objects.filter(disease=candidates[0]).order_by('rank')]
+        disease = candidates[0]
         return JsonResponse({
-            'diseases': [],
-            'hospitals': [{'name': hospital.name, 'introduction': hospital.introduction} for hospital in hospitals],
+            'disease': {'id': disease.id, 'name': disease.name, 'keyword': disease.keyword},
+            'hospitals': [{'id': hospital.id, 'name': hospital.name, 'introduction': hospital.introduction}
+                          for hospital in hospitals],
         }, status=200)
 
 
@@ -51,6 +53,7 @@ class HospitalByDisease(APIView):
         disease = Disease.objects.get(id=disease_id)
         hospitals = [r.hospital for r in Rank.objects.filter(disease=disease).order_by('rank')]
         return JsonResponse({
-            'diseases': [],
-            'hospitals': [{'name': hospital.name, 'introduction': hospital.introduction} for hospital in hospitals],
+            'disease': {'id': disease.id, 'name': disease.name, 'keyword': disease.keyword},
+            'hospitals': [{'id': hospital.id, 'name': hospital.name, 'introduction': hospital.introduction}
+                          for hospital in hospitals],
         }, status=200)
