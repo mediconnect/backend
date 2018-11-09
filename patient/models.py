@@ -32,12 +32,14 @@ class Patient(models.Model):
         (1, 'F'),
         (2, 'O')
     ),default=0)
+    # gender = models.IntegerField()
     birthdate = models.DateField()
-    relationship = models.IntegerField(choices=(
-        (0, 'SELF'),
-        (1, 'RELATIVE'),
-        (2, 'OTHER')
-    ),default=0)
+    # relationship = models.IntegerField(choices=(
+    #     (0, 'SELF'),
+    #     (1, 'RELATIVE'),
+    #     (2, 'OTHER')
+    # ),default=0)
+    relationship = models.IntegerField()
     passport = models.CharField(max_length=20)
 
     # optional fields
