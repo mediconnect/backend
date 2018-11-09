@@ -14,7 +14,6 @@ class DiseaseModuleTest(APITestCase):
     def setUp(self):
         self.client = APITestClient()
         self.dummy = CommonSetup(hospital=1,
-                                 disease=1,
                                  customer=1,
                                  patient=1)
         self.supervisor = self.dummy.supervisor

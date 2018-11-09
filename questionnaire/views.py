@@ -29,7 +29,7 @@ class QuestionnaireViewSet(ModelViewSet):
     serializer_class = QuestionnaireSerializer
     queryset = Questionnaire.objects.all()
     filter_backends = (filters.OrderingFilter,DjangoFilterBackend)
-    filter_fields = ('hospital__name','disease__name','category','is_translated','translator__user')
+    filter_fields = ('hospital__name','disease__name','category','is_translated','translator_id')
     ordering_fields = '__all__'
 
     # def get_permissions(self):
@@ -244,7 +244,7 @@ urlpatterns = router.urls +\
              ListAllAnswers.as_view(),
              name='list-all-answers'),
 
-        re_path(r'(?P<token>[^/.]+)',
+        re_path(r'render/(?P<token>[^/.]+)',
                 RenderTmpLink.as_view(),
                 name='render-questionnaire')
     ]

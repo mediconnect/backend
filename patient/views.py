@@ -3,8 +3,6 @@ from rest_framework.generics import ListAPIView
 from rest_framework import routers,filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
-
 from .serializers import PatientSerializer
 from .models import Patient
 from customer.models import Customer

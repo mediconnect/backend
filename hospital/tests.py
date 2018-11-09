@@ -13,10 +13,6 @@ from backend.common_test import CommonSetup
 class HospitalModuleTest(APITestCase):
     def setUp(self):
         self.client = APITestClient()
-        dummy = self.dummy = CommonSetup(hospital=1,disease=1,customer=1,patient=1)
-        self.hospital_id = dummy.hospital[0]
-        self.disease_id = dummy.disease[0]
-        self.supervisor = dummy.supervisor
 
     def test_create_hospital(self):
         url = reverse('hospital-list')

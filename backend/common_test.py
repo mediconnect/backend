@@ -50,7 +50,6 @@ def hospital_setup(num: int = 1) -> List:
     for i in range(num):
 
         data = {
-            'id':uuid.uuid4(),
             'name':"Dummy Hospital %d" % i,
             'email': 'demo%d@demo.com' % i,
             'overall_rank': '%d' % i,
@@ -65,7 +64,6 @@ def disease_setup(num: int = 1) -> List:
     url = reverse('disease-list')
     for i in range(num):
         data = {
-            'id': uuid.uuid4(),
             'name': "Dummy Disease %d" % i,
 
         }
