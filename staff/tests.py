@@ -32,6 +32,7 @@ class CreateUserTestCase(APITestCase):
             url = reverse('staff-user-list')
             request = self.client.post(url,data,format='json')
             self.assertEqual(request.status_code,201)
+            self.assertTrue(Supervisor.objects.all().exists())
 
         self.client.logout()
 
