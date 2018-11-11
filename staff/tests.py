@@ -53,6 +53,13 @@ class StaffLoginTestCase(APITestCase):
             }
             user = User.objects.get(email=data['email'])
             url = reverse('staff-login')
-            request = self.client.post(url,data,format='json')
-            # print(request.content)
-            self.assertEqual(request.status_code,200)
+            response = self.client.post(url,data,format='json')
+            self.assertEqual(response.status_code,200)
+            self.assertIsNotNone(response.cookies)
+
+    def test_normal_log_out(self):
+        self.testLogin()
+        response = self.client.post(reverse('customer_logout'),{},format='json')
+        self.assertEqual(response.status_code,200)
+        self.assertNotIn('csrftoken',response.cookies)
+        # self.assertRedirects(body,reverse('search_hospital'),200)
