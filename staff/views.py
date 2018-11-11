@@ -68,7 +68,8 @@ class UserViewSet(ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             # Everything's valid, so send it to the different type of User serializer
             user = serializer.save()
-            if request.data['role'] == 0: # customer
+            # print(user)
+            if int(request.data['role']) == 0: # customer
                 auth = {
                     'email': request.data['email'],
                     'password': request.data['password'],
@@ -96,8 +97,11 @@ class UserViewSet(ModelViewSet):
                                      'customer_id':Customer.objects.get(user=user).id},status=201)
                 else:
                     user.delete()
+                    return Response({
+                        "msg":"Create user success, create customer failed"
+                    },status=400)
 
-            elif request.data['role'] == 1:  # supervisor
+            elif int(request.data['role']) == 1:  # supervisor
                 data = {
                     'user':user.id,
                     'role':request.data['role']
@@ -113,8 +117,11 @@ class UserViewSet(ModelViewSet):
                                      'staff_id':Supervisor.objects.get(user=user).id},status=201)
                 else:
                     user.delete()
+                    return Response({
+                        "msg":"Create user success, create supervisor failed"
+                    },status=400)
 
-            elif request.data['role'] == 2:  # translator C2E
+            elif int(request.data['role']) >= 2:  # translator C2E
                 data = {
                     'user':user.id,
                     'role':request.data['role']
@@ -124,25 +131,19 @@ class UserViewSet(ModelViewSet):
                     trans.save()
                     return Response({'msg':'created',
                                      'user_id':user.id,
-                                     'role':'translator_c2e',
+                                     'role':'translator',
                                      'staff_id':Translator.objects.get(user=user).id},status=201)
                 else:
                     user.delete()
-
-            elif request.data['role'] == 3:
-                data = {
-                    'user':user.id,
-                    'role':request.data['role']
-                }
-                trans = TranslatorSerializer(data=data)
-                if trans.is_valid(raise_exception=True):
-                    trans.save()
-                    return Response({'msg':'created',
-                                     'user_id':user.id,
-                                     'role':'translator_e2c',
-                                     'staff_id':Translator.objects.get(user=user).id},status=201)
-                else:
-                    user.delete()
+                    return Response({
+                        "msg":"Create user success, create supervisor failed"
+                    },status=400)
+            else:
+                user.delete()
+                return Response({
+                    "msg": "unsupported role"
+                })
+        return Response({"msg": "Fail"},status=400)
 
 
 class Login(APIView):
