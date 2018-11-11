@@ -222,7 +222,7 @@ router.register(r'admin/(?P<questionnaire_id>[^/.]+)/question/(?P<question_id>[^
                 ChoiceViewSet,
                 base_name='choice')
 
-router.register(r'reservation/(?P<res_id>[^/.]+)/answer',
+router.register(r'reservation/(?P<res_id>[^/.]+)/answer/',
                 AnswerViewSet,
                 base_name='answer')
 
@@ -232,15 +232,15 @@ urlpatterns = router.urls +\
                 CreateTmpLink.as_view(),
                 name='create-link'),
 
-        path('questions',
+        path('questions/',
              ListAllQuestions.as_view(),
              name='list-all-questions'),
 
-        path('choices',
+        path('choices/',
              ListAllChoices.as_view(),
              name='list-all-choices'),
 
-        path('answers',
+        path('answers/',
              ListAllAnswers.as_view(),
              name='list-all-answers'),
 

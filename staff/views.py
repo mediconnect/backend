@@ -228,7 +228,7 @@ router.register(r'user', UserViewSet,base_name='staff-user')
 urlpatterns = router.urls+\
               [
                   path('login', Login.as_view(), name='staff-login'),
-                  re_path(r'assignment/(?P<staff_id>[^/.]+)', Assignments.as_view(), name='staff-assignments'),
-                  re_path(r'summary/(?P<staff_id>[^/.]+)', Summary.as_view(), name='staff-summary'),
+                  re_path(r'assignment/(?P<staff_id>[^/.]+)$', Assignments.as_view(), name='staff-assignments'),
+                  re_path(r'summary/(?P<staff_id>[^/.]+)$', Summary.as_view(), name='staff-summary'),
 
                 ]
