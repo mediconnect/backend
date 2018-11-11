@@ -54,5 +54,5 @@ class StaffLoginTestCase(APITestCase):
             user = User.objects.get(email=data['email'])
             url = reverse('staff-login')
             request = self.client.post(url,data,format='json')
-            print(request.content)
+            # print(request.content)
             self.assertEqual(request.status_code,200)
