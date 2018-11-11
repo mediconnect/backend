@@ -151,7 +151,7 @@ class Login(APIView):
         errors = {}
         login_serializer = StaffLoginSerializer(data=request.data)
         if login_serializer.is_valid():
-            user = login_serializer.login()
+            user = login_serializer.login(request)
             staff = Supervisor.objects.filter(user=user).first()
             if staff:
                 return Response({"msg": "success",

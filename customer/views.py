@@ -74,7 +74,7 @@ class Login(APIView):
 
         user_serializer = UserLoginSerializer(data=data)
         if user_serializer.is_valid():
-            user = user_serializer.login()
+            user = user_serializer.login(request)
             return JsonResponse({
                     "msg": "success",
                     "user_id": user.id,
