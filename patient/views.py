@@ -86,7 +86,7 @@ class ListAllPatients(ListAPIView):
 
 
 router = routers.SimpleRouter()
-router.register(r'customer/(?P<customer_id>[^/.]+)',
+router.register(r'customer/(?P<customer_id>[^/.]+)/patient',
                 PatientViewSet,
                 base_name='patient')
 urlpatterns = router.urls + \
