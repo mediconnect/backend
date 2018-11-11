@@ -9,9 +9,10 @@ from rest_framework.viewsets import ModelViewSet
 
 # django
 from django.contrib.auth.models import User
-from django.urls import path, re_path
+from django.urls import path, re_path, reverse
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
@@ -174,6 +175,15 @@ class Login(APIView):
         return Response(errors, status=400)
 
 
+class Logout(APIView):
+    """View for handling logout"""
+
+    def post(self,request,format=None):
+        logout_serializer = StaffLoginSerializer()
+        logout_serializer.logout(request)
+        return HttpResponse({"msg":"Logout"},status=200)
+
+
 class Assignments(APIView):
     """View for handling get staff assignments"""
 
@@ -230,5 +240,5 @@ urlpatterns = router.urls+\
                   path('login', Login.as_view(), name='staff-login'),
                   re_path(r'assignment/(?P<staff_id>[^/.]+)', Assignments.as_view(), name='staff-assignments'),
                   re_path(r'summary/(?P<staff_id>[^/.]+)', Summary.as_view(), name='staff-summary'),
-
+                  path('logout',Logout.as_view(), name='staff-logout')
                 ]

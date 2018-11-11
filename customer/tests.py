@@ -3,7 +3,7 @@ from django.urls import reverse
 from customer.models import Customer
 import copy
 from .util import test_general
-
+from django.contrib.sites.shortcuts import get_current_site
 
 class RegisterTestCase(TestCase):
     """ Test normal customer registration procedural. """
@@ -84,6 +84,7 @@ class LoginTestCase(TestCase):
         }
         status, body = test_general(self.url, request, 'post')
         self.assertEqual(status, 200)
+        self.assertIsNotNone(body.cookies['csrftoken'])
 
     def test_wrong_password_login(self):
         request = {
@@ -100,6 +101,13 @@ class LoginTestCase(TestCase):
         }
         status, body = test_general(self.url, request, 'post')
         self.assertEqual(status, 400)
+
+    def test_normal_log_out(self):
+        self.test_normal_login()
+        status, body = test_general(reverse('customer_logout'),{},'post')
+        self.assertEqual(status,200)
+        self.assertNotIn('csrftoken',body.cookies)
+        # self.assertRedirects(body,reverse('search_hospital'),200)
 
 
 class ProfileTestCase(TestCase):
