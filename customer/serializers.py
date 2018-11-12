@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Customer
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 import re
 
 
@@ -160,3 +160,6 @@ class UserLoginSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError({'msg':'Authentication Failed'})
         return User.objects.get(username=self.data['email'])
+
+    def logout(self,request):
+        logout(request)

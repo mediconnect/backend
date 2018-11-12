@@ -3,7 +3,8 @@ from rest_framework.parsers import JSONParser
 from .serializers import CustomerRegistrationSerializer, UserRegistrationSerializer, UserLoginSerializer, \
     CustomerProfileSerializer
 from .models import Customer
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
+from django.urls import reverse
 
 
 class Register(APIView):
@@ -87,6 +88,17 @@ class Login(APIView):
             for field, msg in user_serializer.errors.items():
                 errors[field] = msg[-1]
         return JsonResponse(errors, status=400)
+
+class Logout(APIView):
+    """View for handling logout"""
+
+    def post(self,request,format=None):
+        logout_serializer = UserLoginSerializer()
+        logout_serializer.logout(request)
+        return JsonResponse({
+            "msg":"success"
+        },status=200)
+        # return HttpResponseRedirect(content={"msg":"Logout"},status=200, redirect_to=reverse('search_hospital'))
 
 
 class Profile(APIView):

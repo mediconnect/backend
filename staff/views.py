@@ -9,9 +9,10 @@ from rest_framework.viewsets import ModelViewSet
 
 # django
 from django.contrib.auth.models import User
-from django.urls import path, re_path
+from django.urls import path, re_path, reverse
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import HttpResponse
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
@@ -67,7 +68,8 @@ class UserViewSet(ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             # Everything's valid, so send it to the different type of User serializer
             user = serializer.save()
-            if request.data['role'] == 0: # customer
+            # print(user)
+            if int(request.data['role']) == 0: # customer
                 auth = {
                     'email': request.data['email'],
                     'password': request.data['password'],
@@ -95,8 +97,11 @@ class UserViewSet(ModelViewSet):
                                      'customer_id':Customer.objects.get(user=user).id},status=201)
                 else:
                     user.delete()
+                    return Response({
+                        "msg":"Create user success, create customer failed"
+                    },status=400)
 
-            elif request.data['role'] == 1:  # supervisor
+            elif int(request.data['role']) == 1:  # supervisor
                 data = {
                     'user':user.id,
                     'role':request.data['role']
@@ -112,8 +117,11 @@ class UserViewSet(ModelViewSet):
                                      'staff_id':Supervisor.objects.get(user=user).id},status=201)
                 else:
                     user.delete()
+                    return Response({
+                        "msg":"Create user success, create supervisor failed"
+                    },status=400)
 
-            elif request.data['role'] == 2:  # translator C2E
+            elif int(request.data['role']) >= 2:  # translator C2E
                 data = {
                     'user':user.id,
                     'role':request.data['role']
@@ -123,25 +131,19 @@ class UserViewSet(ModelViewSet):
                     trans.save()
                     return Response({'msg':'created',
                                      'user_id':user.id,
-                                     'role':'translator_c2e',
+                                     'role':'translator',
                                      'staff_id':Translator.objects.get(user=user).id},status=201)
                 else:
                     user.delete()
-
-            elif request.data['role'] == 3:
-                data = {
-                    'user':user.id,
-                    'role':request.data['role']
-                }
-                trans = TranslatorSerializer(data=data)
-                if trans.is_valid(raise_exception=True):
-                    trans.save()
-                    return Response({'msg':'created',
-                                     'user_id':user.id,
-                                     'role':'translator_e2c',
-                                     'staff_id':Translator.objects.get(user=user).id},status=201)
-                else:
-                    user.delete()
+                    return Response({
+                        "msg":"Create user success, create supervisor failed"
+                    },status=400)
+            else:
+                user.delete()
+                return Response({
+                    "msg": "unsupported role"
+                })
+        return Response({"msg": "Fail"},status=400)
 
 
 class Login(APIView):
@@ -172,6 +174,15 @@ class Login(APIView):
             for field, msg in login_serializer.errors.items():
                 errors[field] = msg[-1]
         return Response(errors, status=400)
+
+
+class Logout(APIView):
+    """View for handling logout"""
+
+    def post(self,request,format=None):
+        logout_serializer = StaffLoginSerializer()
+        logout_serializer.logout(request)
+        return HttpResponse({"msg":"Logout"},status=200)
 
 
 class Assignments(APIView):
@@ -230,5 +241,5 @@ urlpatterns = router.urls+\
                   path('login', Login.as_view(), name='staff-login'),
                   re_path(r'assignment/(?P<staff_id>[^/.]+)', Assignments.as_view(), name='staff-assignments'),
                   re_path(r'summary/(?P<staff_id>[^/.]+)', Summary.as_view(), name='staff-summary'),
-
+                  path('logout',Logout.as_view(), name='staff-logout')
                 ]

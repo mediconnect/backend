@@ -9,4 +9,4 @@ def test_general(url, request, method):
         response = client.get(url, request, format='json')
     else:
         response = client.put(url, request, format='json')
-    return response.status_code, response.content
+    return response.status_code, response
