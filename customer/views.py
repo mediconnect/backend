@@ -99,6 +99,17 @@ class Login(APIView):
                 errors[field] = msg[-1]
         return JsonResponse(errors, status=400)
 
+class Logout(APIView):
+    """View for handling logout"""
+
+    def post(self,request,format=None):
+        logout_serializer = UserLoginSerializer()
+        logout_serializer.logout(request)
+        return JsonResponse({
+            "msg":"success"
+        },status=200)
+        # return HttpResponseRedirect(content={"msg":"Logout"},status=200, redirect_to=reverse('search_hospital'))
+
 
 class Logout(APIView):
     """View for handling logout"""

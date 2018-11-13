@@ -92,4 +92,3 @@ class StaffLoginSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError({'msg':'Authentication Failed'})
 
-

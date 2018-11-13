@@ -13,7 +13,10 @@ from django.urls import path, re_path, reverse
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
+<<<<<<< HEAD
 from django.contrib.auth import login,logout
+=======
+>>>>>>> develop
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
@@ -184,7 +187,6 @@ class Logout(APIView):
 
     def post(self,request,format=None):
         logout(request)
-        return HttpResponse({"msg":"Logout"},status=200)
 
 
 class Assignments(APIView):
