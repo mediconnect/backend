@@ -13,10 +13,7 @@ from django.urls import path, re_path, reverse
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
-<<<<<<< HEAD
 from django.contrib.auth import login,logout
-=======
->>>>>>> develop
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
