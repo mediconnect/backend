@@ -36,6 +36,7 @@ class PatientTestCase(APITestCase):
         for i in range(3):
 
             payload = {
+                'customer_id':self.customer_id,
                 'first_name':'demo%d'%i,
                 'last_name':'patient%d'%i,
                 'first_name_pinyin':'pin%d'%i,

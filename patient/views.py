@@ -3,6 +3,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework import routers,filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
 from .serializers import PatientSerializer
 from .models import Patient
 from staff.models.supervisor import Supervisor
@@ -20,7 +21,7 @@ class PatientViewSet(ModelViewSet):
         return Patient.objects.filter(customer_id=customer_id)
 
     def create(self,request,*args,**kwargs):
-        user = self.request.user
+        user = request.user
         if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
             if not Supervisor.objects.filter(user_id=user.id).exists():
                 return Response({'error':'Not Allowed'},status=403)
@@ -39,7 +40,7 @@ class PatientViewSet(ModelViewSet):
         # super(PatientViewSet, self).create(request,*args, **kwargs)
 
     def list(self,request,*args,**kwargs):
-        user = self.request.user
+        user = request.user
         if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
             if not Supervisor.objects.filter(user_id=user.id).exists():
                 return Response({'error':'Not Allowed'},status=403)
@@ -48,7 +49,7 @@ class PatientViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         customer_id = self.kwargs['customer_id']
-        user = self.request.user
+        user = request.user
         if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
             if not Supervisor.objects.filter(user_id=user.id).exists():
                 return Response({'error':'Not Allowed'},status=403)

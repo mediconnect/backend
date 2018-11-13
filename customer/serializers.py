@@ -153,13 +153,9 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
         return data
 
-    def login(self,request):
-        user = authenticate(request,username=self.data['email'],password=self.data['password'])
+    def login(self):
+        user = authenticate(username=self.data['email'],password=self.data['password'])
         if user is not None:
-            login(request,user)
+            return User.objects.get(username=self.data['email'])
         else:
             raise serializers.ValidationError({'msg':'Authentication Failed'})
-        return User.objects.get(username=self.data['email'])
-
-    def logout(self,request):
-        logout(request)
