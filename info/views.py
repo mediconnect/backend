@@ -17,7 +17,7 @@ class InfoViewSet(ModelViewSet):
     queryset = Info.objects.all()
     filter_backends = (filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend)
     filter_fields = ('disease', 'hospital')
-    search_fields = ('=disease', '=hospital')
+    search_fields = ('=disease__name', '=hospital__name')
     ordering_fields = ('disease', 'hospital', 'rank', 'deposit', 'full_price')
     ordering = ('rank', 'deposit', 'full_price')
 

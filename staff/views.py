@@ -13,6 +13,7 @@ from django.urls import path, re_path, reverse
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
+from django.contrib.auth import login,logout
 
 # other
 from .serializers import TranslatorSerializer, SupervisorSerializer,\
@@ -153,9 +154,10 @@ class Login(APIView):
         errors = {}
         login_serializer = StaffLoginSerializer(data=request.data)
         if login_serializer.is_valid():
-            user = login_serializer.login(request)
+            user = login_serializer.login()
             staff = Supervisor.objects.filter(user=user).first()
             if staff:
+                login(request,user,backend='django.contrib.auth.backends.ModelBackend')
                 return Response({"msg": "success",
                                  "user_id":user.id,
                                  "staff_id":staff.id,
@@ -163,6 +165,7 @@ class Login(APIView):
             else:
                 staff = Translator.objects.filter(user=user).first()
                 if staff:
+                    login(request,user,backend='django.contrib.auth.backends.ModelBackend')
                     return Response({"msg": "success",
                                      "user_id":user.id,
                                      "staff_id":staff.id,
@@ -180,9 +183,7 @@ class Logout(APIView):
     """View for handling logout"""
 
     def post(self,request,format=None):
-        logout_serializer = StaffLoginSerializer()
-        logout_serializer.logout(request)
-        return HttpResponse({"msg":"Logout"},status=200)
+        logout(request)
 
 
 class Assignments(APIView):

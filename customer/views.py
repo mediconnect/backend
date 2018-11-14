@@ -1,17 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
+from rest_framework.request import Request
 from .serializers import CustomerRegistrationSerializer, UserRegistrationSerializer, UserLoginSerializer, \
     CustomerProfileSerializer
 from .models import Customer
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse
-
+from django.contrib.auth import login, logout
 
 class Register(APIView):
     """ View for handling registration request. """
 
     def post(self, request, format=None):
-        data = JSONParser().parse(request)
+        data = request.data
         errors = {}
 
         user_serializer = UserRegistrationSerializer(data=data['auth'])
@@ -70,12 +71,21 @@ class Login(APIView):
     """ View for handling login request. """
 
     def post(self, request, format=None):
-        data = JSONParser().parse(request)
+        # data = None
+        # print(type(request.data))
+        # if isinstance(request,Request):
+        #     data = request.data
+        # elif isinstance(request,str):
+        #     data = JSONParser().parse(request)
+        # else:
+        #     return JsonResponse({"Error":"Unsupported Type"},status=400)
+        data = request.data
         errors = {}
 
         user_serializer = UserLoginSerializer(data=data)
         if user_serializer.is_valid():
-            user = user_serializer.login(request)
+            user = user_serializer.login()
+            login(request,user,backend='django.contrib.auth.backends.ModelBackend')
             return JsonResponse({
                     "msg": "success",
                     "user_id": user.id,
@@ -89,12 +99,12 @@ class Login(APIView):
                 errors[field] = msg[-1]
         return JsonResponse(errors, status=400)
 
+
 class Logout(APIView):
     """View for handling logout"""
 
     def post(self,request,format=None):
-        logout_serializer = UserLoginSerializer()
-        logout_serializer.logout(request)
+        logout(request)
         return JsonResponse({
             "msg":"success"
         },status=200)
@@ -105,7 +115,7 @@ class Profile(APIView):
     """ View for handling customer profile information. """
 
     def put(self, request, format=None):
-        data = JSONParser().parse(request)
+        data = request.data
 
         customer_profile_serializer = CustomerProfileSerializer(data=data)
 
@@ -122,7 +132,7 @@ class Profile(APIView):
 
     def get(self, request, format=None):
         id = request.query_params.get('id')
-        data = {'id': id}
+        data = {"id": id}
 
         customer_profile_serializer = CustomerProfileSerializer(data=data)
 
