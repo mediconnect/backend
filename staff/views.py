@@ -68,82 +68,85 @@ class UserViewSet(ModelViewSet):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             # Everything's valid, so send it to the different type of User serializer
-            user = serializer.save()
-            # print(user)
-            if int(request.data['role']) == 0: # customer
-                auth = {
-                    'email': request.data['email'],
-                    'password': request.data['password'],
-                    'password_confirmation': request.data['confirmed_password'],
-                    'first_name': request.data['first_name'],
-                    'last_name': request.data['last_name']
-                }
-                customer = {
-                    'tel': serializer.validated_data['tel'],
-                    'address': serializer.validated_data['address']
-                }
-                data = {
-                    'customer':customer,
-                    'auth':auth
-                }
-                data['customer']['user'] = user.id
-                customer = CustomerRegistrationSerializer(
-                    data=data['customer']
-                )
-                if customer.is_valid(raise_exception=True):
-                    customer.save()
-                    return Response({'msg':'created',
-                                     'user_id':user.id,
-                                     'role': 'customer',
-                                     'customer_id':Customer.objects.get(user=user).id},status=201)
+            try:
+                user = serializer.save()
+                # print(user)
+                if int(request.data['role']) == 0: # customer
+                    auth = {
+                        'email': request.data['email'],
+                        'password': request.data['password'],
+                        'password_confirmation': request.data['confirmed_password'],
+                        'first_name': request.data['first_name'],
+                        'last_name': request.data['last_name']
+                    }
+                    customer = {
+                        'tel': serializer.validated_data['tel'],
+                        'address': serializer.validated_data['address']
+                    }
+                    data = {
+                        'customer':customer,
+                        'auth':auth
+                    }
+                    data['customer']['user'] = user.id
+                    customer = CustomerRegistrationSerializer(
+                        data=data['customer']
+                    )
+                    if customer.is_valid(raise_exception=True):
+                        customer.save()
+                        return Response({'msg':'created',
+                                         'user_id':user.id,
+                                         'role': 'customer',
+                                         'customer_id':Customer.objects.get(user=user).id},status=201)
+                    else:
+                        user.delete()
+                        return Response({
+                            "msg":"Create user success, create customer failed"
+                        },status=400)
+
+                elif int(request.data['role']) == 1:  # supervisor
+                    data = {
+                        'user':user.id,
+                        'role':request.data['role']
+                    }
+
+                    supervisor_serializer = SupervisorSerializer(data=data)
+
+                    if supervisor_serializer.is_valid(raise_exception=True):
+                        supervisor_serializer.save()
+                        return Response({'msg':'created',
+                                         'user_id':user.id,
+                                         'role':'supervisor',
+                                         'staff_id':Supervisor.objects.get(user=user).id},status=201)
+                    else:
+                        user.delete()
+                        return Response({
+                            "msg":"Create user success, create supervisor failed"
+                        },status=400)
+
+                elif int(request.data['role']) >= 2:  # translator C2E
+                    data = {
+                        'user':user.id,
+                        'role':request.data['role']
+                    }
+                    trans = TranslatorSerializer(data=data)
+                    if trans.is_valid(raise_exception=True):
+                        trans.save()
+                        return Response({'msg':'created',
+                                         'user_id':user.id,
+                                         'role':'translator',
+                                         'staff_id':Translator.objects.get(user=user).id},status=201)
+                    else:
+                        user.delete()
+                        return Response({
+                            "msg":"Create user success, create supervisor failed"
+                        },status=400)
                 else:
                     user.delete()
                     return Response({
-                        "msg":"Create user success, create customer failed"
-                    },status=400)
-
-            elif int(request.data['role']) == 1:  # supervisor
-                data = {
-                    'user':user.id,
-                    'role':request.data['role']
-                }
-
-                supervisor_serializer = SupervisorSerializer(data=data)
-
-                if supervisor_serializer.is_valid(raise_exception=True):
-                    supervisor = supervisor_serializer.save()
-                    return Response({'msg':'created',
-                                     'user_id':user.id,
-                                     'role':'supervisor',
-                                     'staff_id':Supervisor.objects.get(user=user).id},status=201)
-                else:
-                    user.delete()
-                    return Response({
-                        "msg":"Create user success, create supervisor failed"
-                    },status=400)
-
-            elif int(request.data['role']) >= 2:  # translator C2E
-                data = {
-                    'user':user.id,
-                    'role':request.data['role']
-                }
-                trans = TranslatorSerializer(data=data)
-                if trans.is_valid(raise_exception=True):
-                    trans.save()
-                    return Response({'msg':'created',
-                                     'user_id':user.id,
-                                     'role':'translator',
-                                     'staff_id':Translator.objects.get(user=user).id},status=201)
-                else:
-                    user.delete()
-                    return Response({
-                        "msg":"Create user success, create supervisor failed"
-                    },status=400)
-            else:
-                user.delete()
-                return Response({
-                    "msg": "unsupported role"
-                })
+                        "msg": "unsupported role"
+                    })
+            except Exception as e:
+                user.delete() # force delete user from db
         return Response({"msg": "Fail"},status=400)
 
 

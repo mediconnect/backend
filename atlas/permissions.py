@@ -7,8 +7,8 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 from staff.models.supervisor import Supervisor
 from staff.models.translator import Translator
 from reservation.models import Reservation
-from hospital.models import Hospital
-from django.contrib.auth.models import User
+from info.models import Info
+from hospital.models import HospitalReview
 from customer.models import Customer
 from atlas.logger import logger,exception
 
@@ -41,28 +41,66 @@ class ResPermission(BasePermission):
         Permission to allow user related to this res operation
     """
 
-    def has_permission(self, request, view):
+    def has_object_permission(self, request, view, obj):
         user = request.user
-        res = Reservation(id = request.resid)
-
-        return user.id in [res.user_id,res.translator_c2e_id,res.translator_e2c_id]
+        res = obj
+        try:
+            if Customer.objects.filter(user=user).exists():
+                assert res.user_id == user.id
+                return True
+            elif Translator.objects.filter(user=user).exists():
+                trans = Translator.objects.get(user=user)
+                if trans.role == 0:  # C2E
+                    assert res.trans_status < 5 # TODO: specify status
+                    return True
+                elif trans.role == 1:  # E2C
+                    assert res.trans_status > 5
+                    assert  res.trans_status < 10
+                    return True
+            else:
+                return False
+        except AssertionError:
+            return False
 
 
 @exception(logger)
-class IsOwnerOrReadOnly(BasePermission):
+class IsOwner(BasePermission):
     """
-    Object-level permission to only allow owners of an object to edit it.
-    Assumes the model instance has an `owner` attribute.
+    Owner here is abstract,
+     e.g. customer/4/patient/1, patient 1's 'owner' is customer 4
+          questionnaire/1/question/2/choice/3, choice 3 's owner is question 2 whose owner is questionnaire 4
+
     """
+    def has_permission(self, request, view):
+        if 'customer_id' in view.kwargs:
+            return Customer.objects.get(id=view.kwargs['customer_id']).user == request.user
 
     def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in SAFE_METHODS:
-            return True
+        for k,v in view.kwargs.items():
+            if k == 'pk':
+                continue
+            if '_id' in k and not isinstance(obj,Reservation):
+                k = k.replace('_id','')
+            if obj.__getattribute__(k).id != int(v):
+                return False
+        return True
 
-        # Instance must have an attribute named `owner`.
-        return obj.owner == request.user
+
+class IsOwnerOrStaff(BasePermission):
+    """
+    Owner or supervisor permission
+    """
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if Supervisor.objects.filter(user=user).exists():
+            return True
+        elif Translator.objects.filter(user=user).exists():
+            if request.method in SAFE_METHODS:
+                return True
+            else:
+                return False
+        else:
+            return IsOwner().has_object_permission(request,view,obj)
 
 
 @exception(logger)
@@ -71,8 +109,11 @@ class StatusPermission(BasePermission):
     Permission to allow certain operation on object if is at certain stage of reservation,
     should always be used with another user-type permission
     """
-    def __init__(self, allowed_status = [], allowed_trans_status = []):
-
+    def __init__(self, allowed_status=None, allowed_trans_status=None):
+        if not allowed_status:
+            allowed_status = []
+        if not allowed_trans_status:
+            allowed_trans_status = []
         super(StatusPermission,self).__init__()
         self.allowed_status = allowed_status
         self.allowed_trans_status = allowed_trans_status
@@ -112,5 +153,19 @@ class CanReviewPermission(BasePermission):
     Permission to allow customer add reviews to hospital
     """
     def has_permission(self,request,view):
-        hospital = Hospital.objects.get(id = request.data['hospital_id'])
-        customer = Customer.objects.get(user = request.user)
+        if request.method in SAFE_METHODS:
+            return True
+        info = Info.objects.get(id=request.data['info_id'])
+        hospital_id = info.hospital.id
+        disease_id= info.disease.id
+        customer_id = Customer.objects.get(user=request.user).id
+        if Reservation.objects.filter(user_id=customer_id,
+                                      hospital=hospital_id,
+                                      disease_id=disease_id).exists():
+            if HospitalReview.objects.filter(customer_id=customer_id,
+                                             hospital_id = hospital_id,
+                                             disease_id = disease_id).exists():
+                return request.method in ['PUT','DELETE',]
+
+            else:
+                return request.method == 'POST'

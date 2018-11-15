@@ -45,7 +45,6 @@ class SupervisorSerializer(serializers.ModelSerializer):
         return Supervisor.objects.create(user=validated_data['user'])
 
     def validate(self, data):
-        print(data)
         """ Validate all fields are filled. """
         if 'role' not in data:
             raise serializers.ValidationError({'role': ['Cannot Be Blank']})

@@ -8,7 +8,7 @@ from document.models import Document
 from document.serializer import DocumentSerializer
 import os.path
 
-from atlas.permissions import SupPermission,TransPermission,ResPermission, IsOwnerOrReadOnly
+from atlas.permissions import SupPermission,TransPermission,ResPermission, IsOwner
 
 import datetime
 
