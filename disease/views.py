@@ -7,7 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Disease
 from .serializers import DiseaseSerializer
 
-from atlas.permissions import SupPermission, TransPermission, ResPermission, IsOwnerOrReadOnly
+from atlas.permissions import SupPermission, TransPermission, ResPermission, IsOwner
 
 
 class DiseaseViewSet(ModelViewSet):

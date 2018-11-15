@@ -5,15 +5,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .serializers import PatientSerializer
 from .models import Patient
-from staff.models.supervisor import Supervisor
 from customer.models import Customer
-
+from atlas.permissions import IsOwner, SupPermission, IsOwnerOrStaff
 from django.urls import path
 from django_filters.rest_framework import DjangoFilterBackend
 
 
 class PatientViewSet(ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsOwnerOrStaff,IsOwner)
     serializer_class = PatientSerializer
 
     def get_queryset(self):
@@ -23,8 +22,7 @@ class PatientViewSet(ModelViewSet):
     def create(self,request,*args,**kwargs):
         user = request.user
         if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
-            if not Supervisor.objects.filter(user_id=user.id).exists():
-                return Response({'error':'Not Allowed'},status=403)
+            return Response({'error':'Not Allowed'},status=403)
         customer_id = int(self.kwargs['customer_id'])
         data = request.data.copy()
         data['customer'] = customer_id
@@ -38,77 +36,62 @@ class PatientViewSet(ModelViewSet):
             return Response(serializer.errors,status=400)
         # super(PatientViewSet, self).create(request,*args, **kwargs)
 
-    def list(self,request,*args,**kwargs):
-        user = request.user
-        if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
-            if not Supervisor.objects.filter(user_id=user.id).exists():
-                return Response({'error':'Not Allowed'},status=403)
-        else:
-            return super(PatientViewSet, self).list(request,*args,**kwargs)
+    # def list(self,request,*args,**kwargs):
+    #     user = request.user
+    #     if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
+    #         if not Supervisor.objects.filter(user_id=user.id).exists():
+    #             return Response({'error':'Not Allowed'},status=403)
+    #     else:
+    #         return super(PatientViewSet, self).list(request,*args,**kwargs)
 
-    def retrieve(self, request, *args, **kwargs):
-        customer_id = int(self.kwargs['customer_id'])
-        user = request.user
-        if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
-            if not Supervisor.objects.filter(user_id=user.id).exists():
-                return Response({'error':'Not Allowed'},status=403)
-        patient_id = self.kwargs['pk']
-        patient = Patient.objects.get(id=patient_id)
-        if patient.customer.id != customer_id:
-            return Response({'error':'Not Allowed'},status=403)
-        else:
-            return super(PatientViewSet, self).retrieve(request,*args,**kwargs)
+    # def retrieve(self, request, *args, **kwargs):
+    #     customer_id = int(self.kwargs['customer_id'])
+    #     user = request.user
+    #     if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
+    #         if not Supervisor.objects.filter(user_id=user.id).exists():
+    #             return Response({'error':'Not Allowed'},status=403)
+    #     patient_id = self.kwargs['pk']
+    #     patient = Patient.objects.get(id=patient_id)
+    #     if patient.customer.id != customer_id:
+    #         return Response({'error':'Not Allowed'},status=403)
+    #     else:
+    #         return super(PatientViewSet, self).retrieve(request,*args,**kwargs)
 
-    def update(self, request, *args, **kwargs):
-        customer_id = int(self.kwargs['customer_id'])
-        user = request.user
-        if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
-            if not Supervisor.objects.filter(user_id=user.id).exists():
-                return Response({'error':'Not Allowed'},status=403)
-        patient_id = self.kwargs['pk']
-        patient = Patient.objects.get(id=patient_id)
-        if patient.customer.id != customer_id:
-            return Response({'error':'Not Allowed'},status=403)
-        else:
-            return super(PatientViewSet, self).update(request,*args,**kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        customer_id = int(self.kwargs['customer_id'])
-        user = request.user
-        if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
-            if not Supervisor.objects.filter(user_id=user.id).exists():
-                return Response({'error':'Not Allowed'},status=403)
-        patient_id = self.kwargs['pk']
-        patient = Patient.objects.get(id=patient_id)
-        if patient.customer.id != customer_id:
-            return Response({'error':'Not Allowed'},status=403)
-        else:
-            return super(PatientViewSet, self).destroy(request,*args,**kwargs)
+    # def update(self, request, *args, **kwargs):
+    #     customer_id = int(self.kwargs['customer_id'])
+    #     user = request.user
+    #     if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
+    #         if not Supervisor.objects.filter(user_id=user.id).exists():
+    #             return Response({'error':'Not Allowed'},status=403)
+    #     patient_id = self.kwargs['pk']
+    #     patient = Patient.objects.get(id=patient_id)
+    #     if patient.customer.id != customer_id:
+    #         return Response({'error':'Not Allowed'},status=403)
+    #     else:
+    #         return super(PatientViewSet, self).update(request,*args,**kwargs)
+    #
+    # def destroy(self, request, *args, **kwargs):
+    #     customer_id = int(self.kwargs['customer_id'])
+    #     user = request.user
+    #     if user.id != Customer.objects.get(id=self.kwargs['customer_id']).user_id:
+    #         if not Supervisor.objects.filter(user_id=user.id).exists():
+    #             return Response({'error':'Not Allowed'},status=403)
+    #     patient_id = self.kwargs['pk']
+    #     patient = Patient.objects.get(id=patient_id)
+    #     if patient.customer.id != customer_id:
+    #         return Response({'error':'Not Allowed'},status=403)
+    #     else:
+    #         return super(PatientViewSet, self).destroy(request,*args,**kwargs)
 
 
 class ListAllPatients(ListAPIView):
+    permission_classes = (SupPermission,)
     serializer_class = PatientSerializer
     queryset = Patient.objects.all()
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend,)
     filter_fields = '__all__'
     search_fields = ('=first_name','=last_name')
     ordering_fields = ('customer','first_name','last_name','id')
-
-    # def get_queryset(self):
-    #     """
-    #     Filter/sort by query params in url
-    #     """
-    #     queryset = Patient.objects.all()
-    #     query_dic = {}
-    #
-    #     for field in Patient._meta.get_fields():
-    #         if field.name in self.request.query_params:
-    #             query_dic[field.name] = self.request.query_params.get(field.name)
-    #     queryset = queryset.filter(**query_dic)
-    #     order_by = self.request.query_params.get('_order',None)
-    #     if order_by:
-    #         queryset.order_by(order_by)
-    #     return queryset
 
 
 router = routers.SimpleRouter()
