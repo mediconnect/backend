@@ -12,7 +12,9 @@ from backend.common_test import CommonSetup
 
 class HospitalModuleTest(APITestCase):
     def setUp(self):
+        self.dummy = dummy = CommonSetup()
         self.client = APITestClient()
+        self.client.force_login(user=self.dummy.supervisor)
 
     def test_create_hospital(self):
         url = reverse('hospital-list')
@@ -37,7 +39,5 @@ class HospitalModuleTest(APITestCase):
             'order_by':'name&-email',
         }
         response = self.client.get(url,data,format='json')
-
         self.assertEqual(response.status_code,status.HTTP_200_OK)
-        print(response.data)
 

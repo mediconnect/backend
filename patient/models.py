@@ -1,5 +1,6 @@
 from django.db import models
 from customer.models import Customer
+import uuid
 
 
 class Patient(models.Model):
@@ -19,8 +20,8 @@ class Patient(models.Model):
 
             note <optional>	String
     """
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null= True)
-    # user_id = models.CharField(max_length=100)
 
     # mandatory fields
     first_name = models.CharField(max_length=50)

@@ -136,7 +136,7 @@ class CommonSetup:
             kwargs_map[kwspace][kwkey] = arg
 
         self.supervisor = supervisor_setup()
-        self.translator =  translator_setup()
+        self.translator = translator_setup()
         client.force_login(self.supervisor)
         self.hospital = hospital_setup(hospital)
         self.disease = disease_setup(disease)

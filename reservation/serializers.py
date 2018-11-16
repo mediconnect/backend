@@ -4,7 +4,8 @@ from atlas.creator import create_optional_field_serializer
 from .models import Reservation
 from customer.models import Customer
 from patient.models import Patient
-from hospital.models import Hospital, Disease
+from hospital.models import Hospital
+from disease.models import Disease
 from slot.models.timeslot import TimeSlot
 
 
