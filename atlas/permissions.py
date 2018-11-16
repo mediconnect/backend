@@ -7,8 +7,7 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 from staff.models.supervisor import Supervisor
 from staff.models.translator import Translator
 from reservation.models import Reservation
-from info.models import Info
-from hospital.models import HospitalReview
+from info.models import Info, InfoReview
 from customer.models import Customer
 from atlas.logger import logger,exception
 
@@ -162,9 +161,7 @@ class CanReviewPermission(BasePermission):
         if Reservation.objects.filter(user_id=customer_id,
                                       hospital=hospital_id,
                                       disease_id=disease_id).exists():
-            if HospitalReview.objects.filter(customer_id=customer_id,
-                                             hospital_id = hospital_id,
-                                             disease_id = disease_id).exists():
+            if InfoReview.objects.filter(customer_id=customer_id,info=info).exists():
                 return request.method in ['PUT','DELETE',]
 
             else:

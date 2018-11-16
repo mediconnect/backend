@@ -1,14 +1,11 @@
 from django.db import models
 from django.utils import http
 
-from customer.models import Customer
-from disease.models import Disease
-
 import uuid
 
 
 def hospital_directory_path(instance, filename):
-    return 'res_{0}/{1}'.format(instance.resid.res_id,http.urlquote(filename))
+    return 'hospital/{0}/{1}'.format(instance.id,http.urlquote(filename))
 
 
 class Hospital(models.Model):
@@ -21,30 +18,10 @@ class Hospital(models.Model):
     website = models.URLField(blank=True)
     introduction = models.TextField(default='intro')
     specialty = models.TextField(default='specialty')
+
+    # Deprecated fields
     average_score = models.FloatField(default=0.0)
     review_number = models.IntegerField(default=0, null=False)
 
     class Meta:
         db_table = 'db_hospital'
-
-
-class HospitalReview(models.Model):
-
-    hospital = models.ForeignKey(Hospital,on_delete=models.SET_NULL,null=True)
-    customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
-    disease = models.ForeignKey(Disease, on_delete=models.SET_NULL,null=True)
-    review = models.CharField(null=True,max_length=200)
-    score = models.IntegerField(null=True)
-    review_time = models.DateField(auto_now_add=True,null=True)
-
-    class Meta:
-        db_table = 'db_hospital_review'
-
-
-class LikeHospital(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, unique=False, default=None, null=True,)
-    hospital = models.ForeignKey(Hospital, on_delete=models.SET_NULL, unique=False, default=None, null=True,)
-    disease = models.ForeignKey(Disease, on_delete=models.SET_NULL, unique=False, default=None, null=True,)
-
-    class Meta:
-        db_table = 'db_like_hospital'
